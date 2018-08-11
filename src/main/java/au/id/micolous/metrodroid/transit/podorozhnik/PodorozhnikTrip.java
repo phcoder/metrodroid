@@ -8,8 +8,10 @@ import java.util.Calendar;
 import au.id.micolous.metrodroid.transit.Station;
 import au.id.micolous.metrodroid.transit.TransitCurrency;
 import au.id.micolous.metrodroid.transit.Trip;
+import au.id.micolous.metrodroid.util.StationTableReader;
 
 class PodorozhnikTrip extends Trip {
+    private static final String PODOROZHNIK_STR = "podorozhnik";
     private final int mTimestamp;
     private final Integer mFare;
     private final Mode mMode;
@@ -66,7 +68,12 @@ class PodorozhnikTrip extends Trip {
 
     @Override
     public Station getStartStation() {
-        return mLastValidator == null ? null : Station.unknown(mLastValidator);
+        if (mLastValidator == null)
+            return null;
+        Station s = StationTableReader.getStation(PODOROZHNIK_STR, mLastValidator);
+	if (s != null)
+	    return s;
+	return Station.unknown(mLastValidator);
     }
 
     @Override

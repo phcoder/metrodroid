@@ -40,7 +40,10 @@ public class CEPASProtocol {
 
     public byte[] getPurse(int purseId) throws IOException {
         try {
-            byte[] purseBuff = mTagTech.sendRequest(ISO7816Protocol.CLASS_90, (byte) 0x32, (byte) (purseId), (byte) 0, (byte) 0);
+            // This is subtly out-of-spec, so assemble it manually
+            byte[] purseBuff = mTagTech.sendRequest(
+                    new byte[] {ISO7816Protocol.CLASS_90, 0x32, (byte) (purseId),
+                            0, 0, 0});
             if (purseBuff.length != 0) {
                 return purseBuff;
             } else {

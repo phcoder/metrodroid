@@ -92,19 +92,7 @@ public class ISO7816Protocol {
         return output;
     }
 
-    /**
-     * Sends a command to the card and checks the response.
-     *
-     * @param cla        Instruction class, may be any value but 0xFF.
-     * @param ins        Instruction code within the instruction class.
-     * @param p1         Reference byte completing the INS.
-     * @param p2         Reference byte completing the INS.
-     * @param length     Length of the expected return value, or 0 for no limit.
-     * @param parameters Additional data to be send in a command.
-     * @return A wrapped command.
-     */
-    public byte[] sendRequest(byte cla, byte ins, byte p1, byte p2, byte length, byte... parameters) throws IOException, ISO7816Exception {
-        byte[] sendBuffer = wrapMessage(cla, ins, p1, p2, length, parameters);
+    public byte[] sendRequest(byte[] sendBuffer) throws IOException, ISO7816Exception {
         if (ENABLE_TRACING) {
             Log.d(TAG, ">>> " + Utils.getHexString(sendBuffer));
         }
@@ -132,6 +120,21 @@ public class ISO7816Protocol {
         }
 
         return Utils.byteArraySlice(recvBuffer, 0, recvBuffer.length - 2);
+    }
+
+    /**
+     * Sends a command to the card and checks the response.
+     *
+     * @param cla        Instruction class, may be any value but 0xFF.
+     * @param ins        Instruction code within the instruction class.
+     * @param p1         Reference byte completing the INS.
+     * @param p2         Reference byte completing the INS.
+     * @param length     Length of the expected return value, or 0 for no limit.
+     * @param parameters Additional data to be send in a command.
+     * @return A wrapped command.
+     */
+    public byte[] sendRequest(byte cla, byte ins, byte p1, byte p2, byte length, byte... parameters) throws IOException, ISO7816Exception {
+        return sendRequest(wrapMessage(cla, ins, p1, p2, length, parameters));
     }
 
     public byte[] selectByName(byte[] name, boolean nextOccurrence) throws IOException {

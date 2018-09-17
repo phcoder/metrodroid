@@ -103,6 +103,8 @@ public class CEPASApplication extends ISO7816Application {
 
         CEPASProtocol cepasTag = new CEPASProtocol(iso7816Tag);
 
+        iso7816Tag.selectById(0x4000);
+
         for (int purseId = 0; purseId < numPurses; purseId++) {
             byte[] purse = cepasTag.getPurse(purseId);
             if (purse != null) {
@@ -124,6 +126,18 @@ public class CEPASApplication extends ISO7816Application {
             if (history != null)
                 cepasHistories.put(historyId, new Base64String(history));
             setProgress(feedbackInterface, historyId + numPurses);
+        }
+
+        try {
+            app.dumpFile(iso7816Tag, ISO7816Selector.makeSelector(0x3f00), 0);
+        } catch (Exception ex) {
+            Log.d(TAG, "Couldn't read :3f00");
+        }
+
+        try {
+            app.dumpFile(iso7816Tag, ISO7816Selector.makeSelector(0xdf00), 0);
+        } catch (Exception ex) {
+            Log.d(TAG, "Couldn't read :df00");
         }
 
         for (int i = 0x0; i < 0x20;i++) {

@@ -22,11 +22,13 @@ package au.id.micolous.metrodroid.card.desfire;
 
 import android.nfc.Tag;
 import android.nfc.tech.IsoDep;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import au.id.micolous.farebot.R;
 import au.id.micolous.metrodroid.MetrodroidApplication;
 import au.id.micolous.metrodroid.card.Card;
+import au.id.micolous.metrodroid.card.CardTransceiver;
 import au.id.micolous.metrodroid.card.CardType;
 import au.id.micolous.metrodroid.card.TagReaderFeedbackInterface;
 import au.id.micolous.metrodroid.card.desfire.files.DesfireFile;
@@ -106,14 +108,11 @@ public class DesfireCard extends Card {
      *         field.
      * @throws Exception On communication errors.
      */
-    public static DesfireCard dumpTag(Tag tag, TagReaderFeedbackInterface feedbackInterface) throws Exception {
-        List<DesfireApplication> apps = new ArrayList<>();
+    @Nullable
+    public static DesfireCard dumpTag(CardTransceiver tech, byte[] uid, TagReaderFeedbackInterface feedbackInterface) throws Exception {
+            List<DesfireApplication> apps = new ArrayList<>();
 
-        IsoDep tech = IsoDep.get(tag);
-
-        tech.connect();
-
-        DesfireManufacturingData manufData;
+            DesfireManufacturingData manufData;
         DesfireApplication[] appsArray;
 
         try {
@@ -202,11 +201,9 @@ public class DesfireCard extends Card {
             appsArray = new DesfireApplication[apps.size()];
             apps.toArray(appsArray);
         } finally {
-            if (tech.isConnected())
-                tech.close();
         }
 
-        return new DesfireCard(tag.getId(), GregorianCalendar.getInstance(), manufData, appsArray);
+        return new DesfireCard(uid, GregorianCalendar.getInstance(), manufData, appsArray);
     }
 
     /**

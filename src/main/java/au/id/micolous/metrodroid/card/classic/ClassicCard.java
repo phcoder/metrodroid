@@ -517,6 +517,7 @@ public class ClassicCard extends Card {
         return getSector(secidx).getBlock(blockidx);
     }
 
+    @NonNull
     @Override
     public List<ListItem> getRawData() {
         List<ListItem> li = new ArrayList<>();

@@ -224,12 +224,14 @@ public abstract class Card {
      * and the card's serial number (according to the operator).
      * @return
      */
+    @Nullable
     public abstract TransitIdentity parseTransitIdentity();
 
     /**
      * This is where a card is actually parsed into TransitData compatible data.
      * @return
      */
+    @Nullable
     public abstract TransitData parseTransitData();
 
     @Nullable
@@ -237,6 +239,7 @@ public abstract class Card {
         return null;
     }
 
+    @Nullable
     public List<ListItem> getRawData() {
         return null;
     }

@@ -123,8 +123,8 @@ public class ISO7816File {
             recList.add(ListItemRecursive.collapsedValue(Utils.localizeString(R.string.binary_title_format),
                     Utils.getHexDump(binaryData)));
         if (fciData.length > 0)
-            recList.add(ListItemRecursive.collapsedValue(Utils.localizeString(R.string.file_fci),
-                    Utils.getHexDump(fciData)));
+            recList.add(new ListItemRecursive(Utils.localizeString(R.string.file_fci), null,
+                    ISO7816TLV.INSTANCE.infoWithRaw(fciData)));
         List<ISO7816Record> records = getRecords();
         for (ISO7816Record record : records)
             recList.add(ListItemRecursive.collapsedValue(Utils.localizeString(R.string.record_title_format, record.getIndex()),

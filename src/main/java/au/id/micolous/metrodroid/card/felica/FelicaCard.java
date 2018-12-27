@@ -86,7 +86,7 @@ public class FelicaCard extends Card {
     private FelicaCard() { /* For XML Serializer */ }
 
     public FelicaCard(byte[] tagId, Calendar scannedAt, boolean partialRead, byte[] idm, byte[] pmm, FelicaSystem[] systems) {
-        super(CardType.FeliCa, tagId, scannedAt, null, partialRead);
+        super(CardType.FeliCa, tagId, scannedAt, partialRead);
         mIDm = new Base64String(idm);
         mPMm = new Base64String(pmm);
         mSystems = Arrays.asList(systems);
@@ -130,8 +130,6 @@ public class FelicaCard extends Card {
             if (codes.isEmpty()) {
                 // Lite has no system code list
                 byte[] liteSystem = ft.pollingAndGetIDm(FeliCaLib.SYSTEMCODE_FELICA_LITE);
-                //noinspection StringConcatenation
-                Log.d(TAG, "Lite = " + liteSystem);
                 if (liteSystem != null) {
                     Log.d(TAG, "Detected Felica Lite card");
                     codes.add(new FeliCaLib.SystemCode(FeliCaLib.SYSTEMCODE_FELICA_LITE));

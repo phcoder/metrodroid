@@ -824,7 +824,6 @@ public class Utils {
         return luhnChecksum(cardNumber) == 0;
     }
 
-    // TODO: optimize this
     private static int calculateCRCReversed(byte[]data, int init, int[] table) {
         int cur = init;
         for (byte b : data) {
@@ -890,6 +889,8 @@ public class Utils {
         byte[] data;
         try {
             InputStream stream = ctx.getContentResolver().openInputStream(uri);
+            if (stream == null)
+                return KeyFormat.UNKNOWN;
             data = IOUtils.toByteArray(stream);
         } catch (IOException e) {
             Log.w(TAG, "error detecting key format", e);
@@ -909,7 +910,7 @@ public class Utils {
 
         // Scan for the } at the end of the file.
         for (int i=data.length-1; i>0; i--) {
-            String s;
+            @NonNls String s;
             try {
                 s = new String(new byte[]{data[i]}, getUTF8());
             } catch (Exception ex) {
@@ -1118,7 +1119,7 @@ public class Utils {
     @VisibleForTesting
     public static int checkKeyHash(@NonNull byte[] key, @NonNull String salt, String... expectedHashes) {
         MessageDigest md5;
-        String digest;
+        @NonNls String digest;
 
         // Validate input arguments.
         if (expectedHashes.length < 1) {
@@ -1214,7 +1215,7 @@ public class Utils {
 
     /**
      * There is some circumstance where the OLD CEPASTransaction could contain null bytes,
-     * which would then be serialized as <code>&amp;#0;</code>.
+     * which would then be serialized as {@code &#0;}.
      *
      * From this Android commit, it is no longer possible to serialise a null byte:
      * https://android.googlesource.com/platform/libcore/+/ff42219e3ea3d712f931ae7f26af236339b5cf23%5E%21/#F2

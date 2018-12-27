@@ -110,12 +110,11 @@ public class ReadingTagActivity extends MetrodroidActivity implements TagReaderF
                     i.setImageDrawable(cardInfo.getDrawable(this));
                 }
                 i.setContentDescription(cardInfo.getName());
-                i.invalidate();
             } else {
                 i.setImageResource(R.drawable.logo);
                 i.setContentDescription("");
-                i.invalidate();
             }
+            i.invalidate();
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                 TextView t = findViewById(R.id.status_text);
@@ -171,8 +170,8 @@ public class ReadingTagActivity extends MetrodroidActivity implements TagReaderF
     }
 
     static class ReadingTagTaskEventArgs {
-        private byte[] tagId;
-        private Tag tag;
+        private final byte[] tagId;
+        private final Tag tag;
 
         ReadingTagTaskEventArgs(byte[] tagId, Tag tag) {
             this.tagId = tagId;

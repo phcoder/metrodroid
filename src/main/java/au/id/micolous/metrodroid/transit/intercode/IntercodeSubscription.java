@@ -23,6 +23,7 @@ import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -260,16 +261,20 @@ public class IntercodeSubscription extends En1545Subscription {
     @Nullable
     @Override
     public List<ListItem> getInfo() {
-        List<ListItem> li = super.getInfo();
+        List<ListItem> li = new ArrayList<>();
+        List<ListItem> sli = super.getInfo();
+        if (sli != null)
+            li.addAll(sli);
+
         li.addAll(mParsed.getInfo(new HashSet<>(Arrays.asList(
                 CONTRACT_TARIFF,
                 CONTRACT_PRICE_AMOUNT,
                 CONTRACT_PAY_METHOD,
                 CONTRACT_SALE_DEVICE,
                 CONTRACT_SALE_AGENT,
-                CONTRACT_SALE + "Date",
-                CONTRACT_START + "Date",
-                CONTRACT_END + "Date",
+                En1545FixedInteger.dateName(CONTRACT_SALE),
+                En1545FixedInteger.dateName(CONTRACT_START),
+                En1545FixedInteger.dateName(CONTRACT_END),
                 CONTRACT_STATUS,
                 CONTRACT_PROVIDER,
                 CONTRACT_RECEIPT_DELIVERED,

@@ -78,7 +78,7 @@ public class ISO7816Card extends Card {
     protected ISO7816Card() { /* For XML Serializer */ }
 
     public ISO7816Card(@NonNull List<ISO7816Application> apps, byte[] tagId, Calendar scannedAt, boolean partialRead) {
-        super(CardType.ISO7816, tagId, scannedAt, null, partialRead);
+        super(CardType.ISO7816, tagId, scannedAt, partialRead);
         mApplications = apps;
     }
 
@@ -205,8 +205,8 @@ public class ISO7816Card extends Card {
             List<ListItem> rawAppData = new ArrayList<>();
             byte[] appData = app.getAppData();
             if (appData != null)
-                rawAppData.add(ListItemRecursive.collapsedValue(
-                        R.string.app_fci, Utils.getHexDump(appData)));
+                rawAppData.add(new ListItemRecursive(
+                        R.string.app_fci, null, ISO7816TLV.INSTANCE.infoWithRaw(appData)));
             rawAppData.addAll(app.getRawFiles());
             List<ListItem> extra = app.getRawData();
             if (extra != null)

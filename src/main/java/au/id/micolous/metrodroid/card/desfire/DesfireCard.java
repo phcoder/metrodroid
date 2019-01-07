@@ -22,10 +22,13 @@ package au.id.micolous.metrodroid.card.desfire;
 
 import android.nfc.Tag;
 import android.nfc.tech.IsoDep;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import au.id.micolous.farebot.R;
 import au.id.micolous.metrodroid.card.Card;
+import au.id.micolous.metrodroid.card.CardTransceiver;
 import au.id.micolous.metrodroid.card.CardType;
 import au.id.micolous.metrodroid.card.TagReaderFeedbackInterface;
 import au.id.micolous.metrodroid.card.desfire.files.DesfireFile;
@@ -101,20 +104,17 @@ public class DesfireCard extends Card {
 
     /**
      * Dumps a DESFire tag in the field.
-     * @param tag Tag to dump.
+     * @param tech Tag to dump.
      * @return DesfireCard of the card contents. Returns null if an unsupported card is in the
      *         field.
      * @throws Exception On communication errors.
      */
-    public static DesfireCard dumpTag(Tag tag, TagReaderFeedbackInterface feedbackInterface) throws Exception {
-        List<DesfireApplication> apps = new ArrayList<>();
+    @Nullable
+    public static DesfireCard dumpTag(CardTransceiver tech, ImmutableByteArray uid,
+                                      TagReaderFeedbackInterface feedbackInterface) throws Exception {
+            List<DesfireApplication> apps = new ArrayList<>();
 
-        IsoDep tech = IsoDep.get(tag);
-
-        tech.connect();
-
-        DesfireManufacturingData manufData;
-        DesfireApplication[] appsArray;
+            DesfireManufacturingData manufData;
 
         try {
             DesfireProtocol desfireTag = new DesfireProtocol(tech);
@@ -196,12 +196,9 @@ public class DesfireCard extends Card {
                 apps.add(new DesfireApplication(appId, files, authLog));
             }
         } finally {
-            if (tech.isConnected())
-                tech.close();
         }
 
-        return new DesfireCard(ImmutableByteArray.Companion.fromByteArray(tag.getId()),
-                GregorianCalendar.getInstance(), manufData, apps);
+        return new DesfireCard(uid, GregorianCalendar.getInstance(), manufData, apps);
     }
 
     /**
@@ -267,6 +264,7 @@ public class DesfireCard extends Card {
         return mManfData;
     }
 
+    @NonNull
     @Override
     public List<ListItem> getRawData() {
         List<ListItem> li = new ArrayList<>();

@@ -32,4 +32,8 @@ class Base64String (data: ImmutableByteArray): ImmutableByteArray(data) {
             return value.toBase64()
         }
     }
+
+    companion object {
+        fun empty(): Base64String = Base64String(ImmutableByteArray.empty())
+    }
 }

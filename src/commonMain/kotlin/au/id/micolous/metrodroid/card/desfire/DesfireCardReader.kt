@@ -96,9 +96,12 @@ object DesfireCardReader {
                 val files = mutableMapOf<Int, RawDesfireFile>()
 
                 val unlocker = f?.createUnlocker(appId, manufData)
-                var fileIds = desfireTag.getFileList()
-                if (unlocker != null) {
-                    fileIds = unlocker.getOrder(desfireTag, fileIds)
+                val fileIds = try {
+                    desfireTag.getFileList()
+                } catch (e: UnauthorizedException) {
+                    IntArray(0x20) { it }
+                }.let {
+                    unlocker?.getOrder(desfireTag, it) ?: it
                 }
                 maxProgress += fileIds.size * if (unlocker == null) 1 else 2
                 val authLog = mutableListOf<DesfireAuthLog>()
@@ -124,6 +127,8 @@ object DesfireCardReader {
                             else -> desfireTag.readRecord(fileId)
                         }
                         files[fileId] = RawDesfireFile(settingsRaw, data, null, false)
+                    } catch (e: NotFoundException) {
+                        continue
                     } catch (ex: UnauthorizedException) {
                         files[fileId] = RawDesfireFile(settingsRaw, null, ex.message, true)
                     } catch (ex: CardTransceiveException) {

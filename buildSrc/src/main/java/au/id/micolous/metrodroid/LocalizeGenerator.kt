@@ -96,7 +96,7 @@ object LocalizeGenerator {
            return "else"
         t = t.replace("and", "&&")
         t = t.replace("or", "||")
-        return "$t"
+        return t
     }
 
     private fun makeRFile(outputDir: File, flavour: String) : OutputStreamWriter {

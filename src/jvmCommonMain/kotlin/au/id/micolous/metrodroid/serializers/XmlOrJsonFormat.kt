@@ -4,15 +4,20 @@ import au.id.micolous.metrodroid.card.Card
 import au.id.micolous.metrodroid.multi.Log
 import au.id.micolous.metrodroid.serializers.classic.MfcCardImporter
 import au.id.micolous.metrodroid.util.peekAndSkipSpace
-import kotlinx.io.InputStream
+import kotlinx.io.core.Input
 import kotlinx.io.charsets.Charsets
+import java.io.InputStream
 import java.io.PushbackInputStream
 import java.util.zip.ZipInputStream
 
 class XmlCardFormat : CardImporter {
-    override fun readCard(stream: InputStream): Card = readCardXML(stream)
+    override fun readCard(stream: Input): Card = readCardXML(stream)
 
-    override fun readCards(stream: InputStream): Iterator<Card> {
+    override fun readCards(stream: Input): Iterator<Card> {
+        return iterateXmlCards(stream) { readCard(it) }
+    }
+
+    fun readCardsStream(stream: InputStream): Iterator<Card> {
         return iterateXmlCards(stream) { readCard(it) }
     }
 }
@@ -20,7 +25,7 @@ class XmlCardFormat : CardImporter {
 class XmlOrJsonCardFormat : CardImporter {
     private val mfcFormat = MfcCardImporter()
 
-    override fun readCards(stream: InputStream): Iterator<Card>? {
+    override fun readCards(stream: Input): Iterator<Card>? {
         val pb = PushbackInputStream(stream)
         when (pb.peekAndSkipSpace().toChar()) {
             '<' -> return iterateXmlCards(pb) { readCard(it) }
@@ -30,7 +35,7 @@ class XmlOrJsonCardFormat : CardImporter {
         }
     }
 
-    private fun readZip(stream: InputStream): List<Card> {
+    private fun readZip(stream: Input): List<Card> {
         val zi = ZipInputStream(stream)
         val m = mutableListOf<Card>()
         while (true) {
@@ -45,13 +50,18 @@ class XmlOrJsonCardFormat : CardImporter {
         return m
     }
 
-    override fun readCard(stream: InputStream): Card? {
-        val pb = PushbackInputStream(stream)
-        if (pb.peekAndSkipSpace() == '<'.toByte())
-            return readCardXML(pb)
-        return AutoJsonFormat.readCard(pb.bufferedReader().readText())
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun readCard(stream: Input): Card? {
+        var headByte: Byte = 0
+        stream.preview {
+            headByte = readByte()
+        }
+        if (headByte == '<'.toByte())
+            return readCardXML(stream)
+        return AutoJsonFormat.readCard(stream)
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
     override fun readCard(input: String): Card? {
         val trimmed = input.trim()
         if (trimmed[0] == '<')

@@ -164,7 +164,7 @@ class CardsFragment : ExpandableListFragment(), SearchView.OnQueryTextListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        registerForContextMenu(listView)
+        registerForContextMenu(listView!!)
         if (listAdapter == null) {
             loaderManager.initLoader(0, null, mLoaderCallbacks).startLoading()
         }
@@ -188,15 +188,15 @@ class CardsFragment : ExpandableListFragment(), SearchView.OnQueryTextListener {
         searchView.setOnQueryTextListener(this)
     }
 
-    override fun onCreateContextMenu(menu: ContextMenu, view: View, menuInfo: ContextMenu.ContextMenuInfo) {
-        activity!!.menuInflater.inflate(R.menu.card_context_menu, menu)
+    override fun onCreateContextMenu(menu: ContextMenu, view: View, menuInfo: ContextMenu.ContextMenuInfo?) {
+        requireActivity().menuInflater.inflate(R.menu.card_context_menu, menu)
     }
 
     override fun onContextItemSelected(item: android.view.MenuItem): Boolean {
         if (item.itemId == R.id.delete_card) {
             val id = (item.menuInfo as ExpandableListView.ExpandableListContextMenuInfo).id
             val uri = ContentUris.withAppendedId(CardProvider.CONTENT_URI_CARD, id)
-            activity!!.contentResolver.delete(uri, null, null)
+            requireActivity().contentResolver.delete(uri, null, null)
             return true
         }
         return false
@@ -224,7 +224,7 @@ class CardsFragment : ExpandableListFragment(), SearchView.OnQueryTextListener {
 
                             updateListView()
                             val it = uris.iterator()
-                            onCardsImported(activity!!, uris.size, if (it.hasNext()) it.next() else null)
+                            onCardsImported(requireActivity(), uris.size, if (it.hasNext()) it.next() else null)
                         }
                     }
                     return true
@@ -250,12 +250,12 @@ class CardsFragment : ExpandableListFragment(), SearchView.OnQueryTextListener {
                 }
 
                 R.id.share_xml -> {
-                    ShareTask(activity!!).execute()
+                    ShareTask(requireActivity()).execute()
                     return true
                 }
 
                 R.id.deduplicate_cards -> {
-                    DedupTask(activity!!).execute()
+                    DedupTask(requireActivity()).execute()
                     return true
                 }
 

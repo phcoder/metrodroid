@@ -27,15 +27,15 @@ import au.id.micolous.metrodroid.serializers.CardImporter
 import au.id.micolous.metrodroid.time.TimestampFull
 import au.id.micolous.metrodroid.util.ImmutableByteArray
 import au.id.micolous.metrodroid.util.forEachLine
-import kotlinx.io.InputStream
 import kotlinx.io.charsets.Charsets
+import kotlinx.io.core.Input
 import kotlinx.io.core.String
 
 /**
  * Class to read files built by MIFARE Classic Tool.
  */
 class MctCardImporter : CardImporter {
-    override fun readCard(stream: InputStream): Card? {
+    override fun readCard(stream: Input): Card? {
         val sectors = mutableListOf<ClassicSector>()
         var curSector = -1
         var maxSector = -1

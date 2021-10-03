@@ -21,8 +21,11 @@
 package au.id.micolous.metrodroid.key
 
 import au.id.micolous.metrodroid.multi.Log
+import au.id.micolous.metrodroid.serializers.jsonPrimitiveOrNull
 import kotlinx.io.charsets.Charsets
-import kotlinx.serialization.json.Json
+import kotlinx.io.core.String
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
 
 /**
  * Used by [au.id.micolous.metrodroid.util.Utils.detectKeyFormat] to return the format of a key contained within a
@@ -91,12 +94,14 @@ enum class KeyFormat {
 
             // Now see if it actually parses.
             try {
-                val o = CardKeys.jsonParser.parseJson(kotlinx.io.core.String(bytes = data,
-                        charset = Charsets.UTF_8)).jsonObject
-                val type = o.getPrimitiveOrNull(CardKeys.JSON_KEY_TYPE_KEY)?.contentOrNull
+                val o = CardKeys.jsonParser.parseToJsonElement(
+                    String(bytes = data,
+                        charset = Charsets.UTF_8)
+                ).jsonObject
+                val type = o[CardKeys.JSON_KEY_TYPE_KEY]?.jsonPrimitiveOrNull?.contentOrNull
                 when(type) {
                     CardKeys.TYPE_MFC ->
-                        return if (o.getPrimitiveOrNull(CardKeys.JSON_TAG_ID_KEY)?.contentOrNull?.isEmpty() != false) {
+                        return if (o[CardKeys.JSON_TAG_ID_KEY]?.jsonPrimitiveOrNull?.contentOrNull?.isEmpty() != false) {
                             KeyFormat.JSON_MFC_NO_UID
                         } else {
                             KeyFormat.JSON_MFC

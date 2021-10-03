@@ -75,11 +75,12 @@ class MakeJson: CliktCommand(
     val fname by argument()
     val output by argument()
 
+    @OptIn(ExperimentalStdlibApi::class)
     override fun run() {
         for (card in loadCards(fname) ?: return) {
             val json = CardSerializer.toJson(card)
             val by = File(output).outputStream()
-            by.write(json.toByteArray(charset = Charsets.UTF_8))
+            by.write(json.toString().encodeToByteArray())
             by.close()
         }
     }

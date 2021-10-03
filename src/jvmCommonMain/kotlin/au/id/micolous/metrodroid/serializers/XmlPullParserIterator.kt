@@ -1,16 +1,15 @@
 package au.id.micolous.metrodroid.serializers
 
 import au.id.micolous.metrodroid.card.Card
-import kotlinx.io.IOException
-import kotlinx.io.InputStream
-import kotlinx.io.StringWriter
-import kotlinx.io.charsets.Charsets
+import kotlinx.io.errors.IOException
 
 import org.jetbrains.annotations.NonNls
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserException
 import org.xmlpull.v1.XmlPullParserFactory
 import org.xmlpull.v1.XmlSerializer
+import java.io.InputStream
+import java.io.StringWriter
 
 import java.util.NoSuchElementException
 

@@ -20,6 +20,8 @@
 package au.id.micolous.metrodroid.key
 
 import au.id.micolous.metrodroid.multi.Log
+import au.id.micolous.metrodroid.serializers.jsonObjectOrNull
+import au.id.micolous.metrodroid.serializers.jsonPrimitiveOrNull
 import au.id.micolous.metrodroid.util.ImmutableByteArray
 import kotlinx.serialization.json.*
 
@@ -101,11 +103,13 @@ class CardKeysFromFiles(private val fileReader: CardKeysFileReader) : CardKeysRe
                     try {
                         ctr--
                         val b = fileReader.readFile("$dir/$it") ?: continue
-                        val k = CardKeys.jsonParser.parseToJsonElement(b).jsonObject
-                        val type = k[CardKeys.JSON_KEY_TYPE_KEY]?.jsonPrimitive?.contentOrNull
+                        val k = CardKeys.jsonParser.parseToJsonElement(b).jsonObjectOrNull
+                        if (k == null)
+                            continue
+                        val type = k[CardKeys.JSON_KEY_TYPE_KEY]?.jsonPrimitiveOrNull?.contentOrNull
                         val tagId = when (type) {
                             CardKeys.TYPE_MFC_STATIC -> CardKeys.CLASSIC_STATIC_TAG_ID
-                            else -> k[CardKeys.JSON_TAG_ID_KEY]?.jsonPrimitive?.contentOrNull
+                            else -> k[CardKeys.JSON_TAG_ID_KEY]?.jsonPrimitiveOrNull?.contentOrNull
                         } ?: continue
                         cur += CardKeyRead(id = ctr, tagId = tagId, cardType = type ?: "", keyData = b,
                                 parsed = k, fileName = "$dir/$it")

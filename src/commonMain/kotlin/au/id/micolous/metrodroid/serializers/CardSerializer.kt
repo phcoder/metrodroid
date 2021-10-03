@@ -4,12 +4,12 @@ import au.id.micolous.metrodroid.card.Card
 import au.id.micolous.metrodroid.multi.Log
 import au.id.micolous.metrodroid.multi.NativeThrows
 import au.id.micolous.metrodroid.multi.logAndSwiftWrap
-import kotlinx.io.InputStream
+import kotlinx.io.core.Input
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonConfiguration
+import kotlinx.serialization.json.JsonElement
 
 object CardSerializer {
-    fun load(importer: CardImporter, stream: InputStream): Card? {
+    fun load(importer: CardImporter, stream: Input): Card? {
         try {
             return importer.readCard(stream)
         } catch (ex: Exception) {
@@ -28,7 +28,7 @@ object CardSerializer {
     }
 
     @NativeThrows
-    fun toJson(card: Card): String = logAndSwiftWrap ("Card", "Failed to serialize") {
+    fun toJson(card: Card): JsonElement = logAndSwiftWrap ("Card", "Failed to serialize") {
         JsonKotlinFormat.writeCard(card)
     }
 
@@ -36,7 +36,9 @@ object CardSerializer {
     fun fromPersist(input: String): Card = fromJson(input)
 
     @NativeThrows
-    fun toPersist(card: Card): String = toJson(card)
+    fun toPersist(card: Card): String = toJson(card).toString()
 
-    val jsonPlainStable get() = Json(JsonConfiguration.Stable.copy(useArrayPolymorphism = true))
+    val jsonPlainStable get() = Json {
+        useArrayPolymorphism = true
+    }
 }

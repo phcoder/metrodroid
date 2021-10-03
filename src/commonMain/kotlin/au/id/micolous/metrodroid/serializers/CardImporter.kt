@@ -1,9 +1,9 @@
 package au.id.micolous.metrodroid.serializers
 
+import ByteArrayInput
 import au.id.micolous.metrodroid.card.Card
-import kotlinx.io.ByteArrayInputStream
-import kotlinx.io.InputStream
-import kotlinx.serialization.toUtf8Bytes
+import kotlinx.io.charsets.encodeToByteArray
+import kotlinx.io.core.Input
 
 /**
  * Interface for writing card data importers.
@@ -22,7 +22,7 @@ interface CardImporter {
      *
      * @param stream Stream to read the card content from.
      */
-    fun readCards(stream: InputStream): Iterator<Card>? {
+    fun readCards(stream: Input): Iterator<Card>? {
         val card = readCard(stream)
         return if (card == null) {
             null
@@ -38,7 +38,7 @@ interface CardImporter {
      * @param s String to read from.
      */
     fun readCards(s: String): Iterator<Card>? {
-        return readCards(ByteArrayInputStream(s.toUtf8Bytes()))
+        return readCards(ByteArrayInput(s.encodeToByteArray()))
     }
 
     /**
@@ -48,9 +48,9 @@ interface CardImporter {
      *
      * @param stream Stream to read the card content from.
      */
-    fun readCard(stream: InputStream): Card?
+    fun readCard(stream: Input): Card?
 
     fun readCard(input: String): Card? {
-        return readCard(ByteArrayInputStream(input.toUtf8Bytes()))
+        return readCard(ByteArrayInput(input.encodeToByteArray()))
     }
 }

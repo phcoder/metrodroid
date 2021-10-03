@@ -19,11 +19,9 @@
 
 package au.id.micolous.metrodroid.serializers
 
-import kotlinx.serialization.toUtf8Bytes
-
 object XmlUtils {
-    private val CARDS_HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><cards>\n".toUtf8Bytes()
-    private val CARDS_FOOTER = "</cards>\n".toUtf8Bytes()
+    private val CARDS_HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><cards>\n".encodeToByteArray()
+    private val CARDS_FOOTER = "</cards>\n".encodeToByteArray()
     private val CARDS_SEPARATOR = byteArrayOf(10) //  \n
 
     fun concatCardsFromString(cards: Iterator<String>): String {

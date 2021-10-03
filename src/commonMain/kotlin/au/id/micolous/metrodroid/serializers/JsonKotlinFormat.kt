@@ -20,26 +20,44 @@
 package au.id.micolous.metrodroid.serializers
 
 import au.id.micolous.metrodroid.card.Card
+import au.id.micolous.metrodroid.util.readToString
 
-import kotlinx.io.InputStream
-import kotlinx.io.OutputStream
+import kotlinx.io.charsets.encodeToByteArray
+import kotlinx.io.core.Input
+import kotlinx.io.core.Output
 import kotlinx.serialization.*
 import kotlinx.serialization.encoding.CompositeDecoder.Companion.READ_ALL
 import kotlinx.serialization.encoding.CompositeDecoder.Companion.READ_DONE
 import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.internal.SerialClassDescImpl
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonConfiguration
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+
+internal val JsonElement.jsonPrimitiveOrNull: JsonPrimitive?
+    get() = this as? JsonPrimitive
+
+internal val JsonElement.jsonObjectOrNull: JsonObject?
+    get() = this as? JsonObject
 
 object JsonKotlinFormat : CardExporter, CardImporter {
-    override fun writeCard(s: OutputStream, card: Card) {
-        s.write(writeCard(card).toUtf8Bytes())
+    override fun writeCard(s: Output, card: Card) {
+        val b = writeCard(card).encodeToByteArray()
+        s.writeFully(b, 0, b.length)
     }
-    fun writeCard(card: Card) = Json(JsonConfiguration.Stable.copy(prettyPrint = true, encodeDefaults = false)).stringify(Card.serializer(), card)
 
-    override fun readCard(stream: InputStream) =
+    private val jsonOutputFormat = Json {
+        prettyPrint = true
+        encodeDefaults = false
+    }
+
+    fun writeCard(card: Card) = jsonOutputFormat.encodeToJsonElement(Card.serializer(), card)
+
+    override fun readCard(stream: Input) =
             readCard(stream.readToString())
 
     // This intentionally runs in non-strict mode.
@@ -48,10 +66,16 @@ object JsonKotlinFormat : CardExporter, CardImporter {
     // 1. This lets us remove old fields, without keeping attributes hanging around. There doesn't
     //    seem to be a simple way to explicitly ignore single fields in JSON inputs.
     // 2. Dumps from a newer version of Metrodroid can still be read (though, without these fields).
-    val nonstrict = Json(JsonConfiguration.Stable.copy(useArrayPolymorphism = true,
-    	strictMode = false))
+    val nonstrict = Json {
+        useArrayPolymorphism = true
+        isLenient = true
+        ignoreUnknownKeys = true
+    }
     override fun readCard(input: String): Card =
-            nonstrict.parse(Card.serializer(), input)
+            nonstrict.decodeFromString(Card.serializer(), input)
+
+    fun readCard(input: JsonElement): Card =
+        nonstrict.decodeFromJsonElement(Card.serializer(), input)
 }
 
 // Standard polymorphic serializer works fine but let's avoid putting

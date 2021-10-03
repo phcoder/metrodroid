@@ -227,7 +227,9 @@ dependencies {
     implementation project(':proto')
 
     implementation "org.jetbrains.kotlinx:kotlinx-io:$kotlinio_version"
-
+    implementation "org.jetbrains.kotlinx:kotlinx-io-jvm:$kotlinio_version"
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinserial_version"
+ 
     implementation 'com.github.bmelnychuk:atv:1.2.9'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.1'
     implementation 'com.google.android.material:material:1.4.0'
@@ -637,11 +639,15 @@ android {
 
 kotlin.sourceSets.all {
     languageSettings {
-        useExperimentalAnnotation('kotlin.ExperimentalUnsignedTypes')
-        useExperimentalAnnotation('kotlin.Experimental')
+        optIn('kotlin.ExperimentalUnsignedTypes')
+        optIn('kotlin.Experimental')
     }
 }
 
+androidExtensions {
+    // Needed for kotlinx.android.parcel.Parcelize
+    experimental = true
+}
 repositories {
     mavenCentral()
 }

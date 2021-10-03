@@ -19,29 +19,15 @@
 
 package au.id.micolous.metrodroid.util
 
-import kotlinx.io.ByteArrayOutputStream
-import kotlinx.io.InputStream
+import kotlinx.io.core.Input
 import kotlinx.io.charsets.Charsets
+import kotlinx.io.core.String
+import kotlinx.io.core.readBytes
 
-fun InputStream.fullRead(maxSize: Int? = null) : ByteArray {
-    val bo = ByteArrayOutputStream() // TODO: preallocate the correct size once it's possible in kotlin-common
-    val buf = ByteArray(64 * 1024) { 0 }
-    var totalSize = 0
-    while(true) {
-        val actualLen = this.read(buf, 0, buf.size)
-        if (actualLen <= 0)
-            break
-        bo.write(buf, 0, actualLen)
-        totalSize += actualLen
-        if (maxSize != null && totalSize > maxSize)
-            break
-    }
-    return bo.toByteArray()
-}
-fun InputStream.readToString(maxSize: Int? = null) : String = kotlinx.io.core.String(
-            bytes = this.fullRead(maxSize=maxSize),
+fun Input.readToString(maxSize: Int? = null) : String = String(
+            bytes = this.readBytes(),
             charset = Charsets.UTF_8)
 
-fun InputStream.forEachLine(maxSize: Int? = null, function: (String) -> Unit) {
+fun Input.forEachLine(maxSize: Int? = null, function: (String) -> Unit) {
     this.readToString(maxSize=maxSize).split('\n', '\r').filter { it.isNotEmpty() }.forEach(function)
 }

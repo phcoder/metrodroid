@@ -40,20 +40,19 @@ import au.id.micolous.metrodroid.time.TimestampFull
 import au.id.micolous.metrodroid.util.ImmutableByteArray
 import au.id.micolous.metrodroid.util.decodeBase64
 import au.id.micolous.metrodroid.util.readToString
-import kotlinx.io.InputStream
+import kotlinx.io.core.Input
 import kotlinx.serialization.*
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonConfiguration
 import kotlinx.serialization.json.JsonElement
 
 abstract class CardImporterString : CardImporter {
-    override fun readCard(stream: InputStream): Card? =
+    override fun readCard(stream: Input): Card? =
             readCardList(stream.readToString()).firstOrNull()
 
     override fun readCard(input: String): Card? =
             readCardList(input).firstOrNull()
 
-    override fun readCards(stream: InputStream) =
+    override fun readCards(stream: Input) =
             readCardList(stream.readToString()).iterator()
 
     override fun readCards(s: String): Iterator<Card> =
@@ -64,20 +63,21 @@ abstract class CardImporterString : CardImporter {
 
 object FarebotJsonFormat : CardImporterString() {
     override fun readCardList(input: String): List<Card> =
-            CardSerializer.jsonPlainStable.parse(FarebotCards.serializer(), input).convert()
+            CardSerializer.jsonPlainStable.decodeFromString(FarebotCards.serializer(),
+                input).convert()
     
     fun readCards(input: JsonElement): List<Card> =
-            CardSerializer.jsonPlainStable.fromJson(FarebotCards.serializer(), input).convert()
+            CardSerializer.jsonPlainStable.decodeFromJsonElement(FarebotCards.serializer(), input).convert()
 }
 
 object AutoJsonFormat : CardImporterString() {
     override fun readCardList(input: String): List<Card> =
-            readCards(CardSerializer.jsonPlainStable.parseJson(input), input)
+            readCards(CardSerializer.jsonPlainStable.parseToJsonElement(input), input)
 
     fun readCards(input: JsonElement, plain: String): List<Card> =
-        if (input.jsonObject.containsKey("cards") &&
-                !input.jsonObject.containsKey("scannedAt") &&
-                !input.jsonObject.containsKey("tagId"))
+        if (input.jsonObjectOrNull?.containsKey("cards") == true &&
+                input.jsonObjectOrNull?.containsKey("scannedAt") != true &&
+                input.jsonObjectOrNull?.containsKey("tagId") != true)
             FarebotJsonFormat.readCards(input)
         else
             // Kotlin 1.3.40 has trouble parsing polymorphs in an abstract tree

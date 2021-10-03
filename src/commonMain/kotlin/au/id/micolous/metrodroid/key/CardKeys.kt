@@ -21,6 +21,8 @@
 package au.id.micolous.metrodroid.key
 
 import au.id.micolous.metrodroid.serializers.CardSerializer
+import au.id.micolous.metrodroid.serializers.jsonObjectOrNull
+import au.id.micolous.metrodroid.serializers.jsonPrimitiveOrNull
 import kotlinx.serialization.json.*
 
 interface CardKeys {
@@ -57,12 +59,13 @@ interface CardKeys {
 
         fun fromJSON(keyJSON: JsonObject, defaultBundle: String): CardKeys? = fromJSON(
             keyJSON,
-            keyJSON[CardKeys.JSON_KEY_TYPE_KEY]?.jsonPrimitive?.contentOrNull ?: "",
+            keyJSON[CardKeys.JSON_KEY_TYPE_KEY]?.jsonPrimitiveOrNull?.contentOrNull ?: "",
             defaultBundle)
 
         val jsonParser get() = CardSerializer.jsonPlainStable
 
-        fun fromJSON(keyJSON: String, defaultBundle: String) = fromJSON(
-                jsonParser.parseToJsonElement(keyJSON).jsonObject, defaultBundle)
+        fun fromJsonString(keyJSON: String, defaultBundle: String): CardKeys?
+            = jsonParser.parseToJsonElement(keyJSON).jsonObjectOrNull?.let { it ->
+                fromJSON(it, defaultBundle) }
     }
 }

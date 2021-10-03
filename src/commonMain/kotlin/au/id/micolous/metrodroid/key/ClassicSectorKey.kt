@@ -31,7 +31,7 @@ import au.id.micolous.metrodroid.multi.StringResource
 import au.id.micolous.metrodroid.util.ImmutableByteArray
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.json
+import kotlinx.serialization.json.buildJsonObject
 import kotlin.experimental.xor
 
 interface ClassicSectorAlgoKey {
@@ -42,7 +42,7 @@ interface ClassicSectorAlgoKey {
 
 data class TouchnGoKey (val key: ImmutableByteArray,
                         val type: ClassicSectorKey.KeyType): ClassicSectorAlgoKey {
-    override fun toJSON(sector: Int): JsonObject = json {
+    override fun toJSON(sector: Int): JsonObject = buildJsonObject {
         when (type) {
             ClassicSectorKey.KeyType.A -> KEY_TYPE to TYPE_KEYA
             ClassicSectorKey.KeyType.B -> KEY_TYPE to TYPE_KEYB
@@ -128,7 +128,7 @@ data class ClassicSectorKey internal constructor(
     fun updateType(keyType: KeyType) = ClassicSectorKey(key = key,
             type = keyType, bundle = bundle)
 
-    override fun toJSON(sector: Int): JsonObject = json {
+    override fun toJSON(sector: Int): JsonObject = buildJsonObject {
             when (type) {
                 ClassicSectorKey.KeyType.A -> KEY_TYPE to TYPE_KEYA
                 ClassicSectorKey.KeyType.B -> KEY_TYPE to TYPE_KEYB

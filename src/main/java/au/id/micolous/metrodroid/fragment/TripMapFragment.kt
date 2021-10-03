@@ -48,7 +48,7 @@ class TripMapFragment: Fragment() {
     private var mWebView: WebView? = null
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         mWebView?.destroy()
-        val webView = WebView(context)
+        val webView = WebView(context!!)
         mWebView = webView
         webView.webChromeClient = WebChromeClient()
         return webView

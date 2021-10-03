@@ -23,6 +23,7 @@ package au.id.micolous.metrodroid.key
 
 import au.id.micolous.metrodroid.multi.Localizer
 import au.id.micolous.metrodroid.multi.R
+import au.id.micolous.metrodroid.serializers.jsonPrimitiveOrNull
 import au.id.micolous.metrodroid.util.ImmutableByteArray
 import kotlinx.serialization.json.*
 
@@ -104,7 +105,7 @@ class ClassicCardKeys(override var uid: String?,
          * See https://github.com/micolous/metrodroid/wiki/Importing-MIFARE-Classic-keys#json
          */
         fun fromJSON(json: JsonObject, defaultBundle: String) =
-            ClassicCardKeys(uid = json[CardKeys.JSON_TAG_ID_KEY]?.jsonPrimitive?.contentOrNull,
+            ClassicCardKeys(uid = json[CardKeys.JSON_TAG_ID_KEY]?.jsonPrimitiveOrNull?.contentOrNull,
                     keys = keysFromJSON(json, true, defaultBundle).mapValues { (_, keys) -> keys.filterIsInstance<ClassicSectorKey>() },
                     sourceDataLength = json.toString().length)
     }

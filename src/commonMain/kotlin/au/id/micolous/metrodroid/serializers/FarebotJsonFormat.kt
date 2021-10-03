@@ -52,12 +52,6 @@ abstract class CardImporterString : CardImporter {
     override fun readCard(input: String): Card? =
             readCardList(input).firstOrNull()
 
-    override fun readCards(stream: Input) =
-            readCardList(stream.readToString()).iterator()
-
-    override fun readCards(s: String): Iterator<Card> =
-            readCardList(s).iterator()
-
     abstract fun readCardList(input: String): List<Card>
 } 
 

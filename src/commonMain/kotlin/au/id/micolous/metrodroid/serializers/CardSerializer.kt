@@ -24,7 +24,7 @@ object CardSerializer {
 
     @NativeThrows
     fun fromAutoJson(json: String): Iterator<Card> = logAndSwiftWrap ("Card", "Failed to deserialize") {
-        AutoJsonFormat.readCards(json)
+        AutoJsonFormat.readCardList(json).iterator()
     }
 
     @NativeThrows

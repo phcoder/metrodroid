@@ -134,7 +134,7 @@ object ExportHelper {
     }
 
     fun importCards(istream: InputStream,
-                    importer: CardImporter,
+                    importer: CardMultiImporter,
                     context: Context): Collection<Uri> {
         val it = importer.readCards(istream) ?: return emptyList()
 
@@ -142,7 +142,7 @@ object ExportHelper {
     }
 
     fun importCards(s: String,
-                    importer: CardImporter,
+                    importer: CardMultiImporter,
                     context: Context): Collection<Uri> {
         val it = importer.readCards(s) ?: return emptyList()
 

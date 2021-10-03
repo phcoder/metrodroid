@@ -225,7 +225,7 @@ class KeysFragment : ListFragment(), AdapterView.OnItemLongClickListener {
                         when (f) {
                             KeyFormat.JSON_MFC_STATIC -> {
                                 // Static keys can't be prompted
-                                @StringRes val err = importKeysFromStaticJSON(activity!!, uri)
+                                @StringRes val err = importKeysFromStaticJSON(requireActivity(), uri)
                                 if (err != 0) {
                                     Toast.makeText(activity, err, Toast.LENGTH_SHORT).show()
                                 }
@@ -263,7 +263,7 @@ class KeysFragment : ListFragment(), AdapterView.OnItemLongClickListener {
                 }
             }
         } catch (ex: Exception) {
-            Utils.showError(activity!!, ex)
+            Utils.showError(requireActivity(), ex)
         }
 
     }

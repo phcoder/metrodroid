@@ -47,7 +47,6 @@ import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.CompositeDecoder.Companion.DECODE_DONE
 import kotlinx.serialization.encoding.CompositeDecoder.Companion.UNKNOWN_NAME
 import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.internal.EnumDescriptor
 import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
 import kotlin.native.concurrent.SharedImmutable
@@ -191,10 +190,12 @@ class XMLInput internal constructor(private val parent: NodeWrapper,
         return XMLInput(newNode, state = newState, strict = strict,
                 listIdxElem = computeIdxElem(),
                 skippable = listOfNotNull(listIdxElem).toSet(),
-                ignore = desc.annotations
+                ignore = (0 until desc.elementsCount).map {
+                        desc.getElementAnnotations(it)
+                    }
                     .filterIsInstance<XMLIgnore>()
                     .map { it.ignore }.toSet(),
-                serializersModule = serializersModule
+                    serializersModule = serializersModule
         )
     }
 
@@ -321,6 +322,28 @@ class XMLInput internal constructor(private val parent: NodeWrapper,
     override fun decodeShort(): Short = takeStr().toShort()
     override fun decodeInt(): Int = takeStr().toInt()
     override fun decodeLong(): Long = takeStr().toLong()
+
+    @ExperimentalSerializationApi
+    override fun decodeNotNullMark(): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    @ExperimentalSerializationApi
+    override fun decodeNull(): Nothing? {
+        TODO("Not yet implemented")
+    }
+
+    override fun decodeInline(descriptor: SerialDescriptor): Decoder {
+        TODO("Not yet implemented")
+    }
+
+    override fun decodeInlineElement(
+        descriptor: SerialDescriptor,
+        index: Int
+    ): Decoder {
+        TODO("Not yet implemented")
+    }
+
     override fun decodeFloat(): Float = takeStr().toFloat()
     override fun decodeDouble(): Double = takeStr().toDouble()
     override fun decodeChar(): Char = takeStr().single()
@@ -328,6 +351,77 @@ class XMLInput internal constructor(private val parent: NodeWrapper,
 
     override fun decodeEnum(enumDescription: SerialDescriptor): Int
         = enumDescription.getElementIndex(takeStr())
+
+    private fun takeStrElement(descriptor: SerialDescriptor, index: Int): String? {
+        var realIndex = index
+        if (descriptor.serialName in children[curTagIndex].attributes) {
+            if (index == 0)
+                return children[curTagIndex].attributes[descriptor.serialName]
+            realIndex--
+        }
+        return children.filter {
+            it.nodeName == descriptor.serialName
+        }[realIndex].inner
+    }
+
+    override fun decodeBooleanElement(descriptor: SerialDescriptor, index: Int): Boolean
+        = takeStrElement(descriptor, index).toBoolean()
+    override fun decodeByteElement(descriptor: SerialDescriptor, index: Int): Byte
+            = takeStrElement(descriptor, index)!!.toByte()
+    override fun decodeShortElement(descriptor: SerialDescriptor, index: Int): Short
+            = takeStrElement(descriptor, index)!!.toShort()
+    override fun decodeIntElement(descriptor: SerialDescriptor, index: Int): Int
+            = takeStrElement(descriptor, index)!!.toInt()
+    override fun decodeLongElement(descriptor: SerialDescriptor, index: Int): Long
+            = takeStrElement(descriptor, index)!!.toLong()
+
+    @ExperimentalSerializationApi
+    override fun <T : Any> decodeNullableSerializableElement(
+        descriptor: SerialDescriptor,
+        index: Int,
+        deserializer: DeserializationStrategy<T?>,
+        previousValue: T?
+    ): T? {
+        if (takeStrElement(descriptor, index) == null)
+            return null
+        return decodeSerializableElement(descriptor, index, deserializer,previousValue)
+    }
+
+    override fun <T> decodeSerializableElement(
+        descriptor: SerialDescriptor,
+        index: Int,
+        deserializer: DeserializationStrategy<T>,
+        previousValue: T?
+    ): T {
+        val el = children.filter {
+            it.nodeName == descriptor.serialName
+        }[index]
+
+        return XMLInput(serializersModule = serializersModule,
+            strict = strict,
+            skippable = listOfNotNull(listIdxElem).toSet(),
+            ignore = (0 until descriptor.elementsCount).map {
+                descriptor.getElementAnnotations(it)
+            }
+                .filterIsInstance<XMLIgnore>()
+                .map { it.ignore }.toSet(),
+            parent = el
+        ).decodeSerializableValue(
+            deserializer
+        )
+    }
+
+    override fun decodeFloatElement(descriptor: SerialDescriptor, index: Int): Float
+            = takeStrElement(descriptor, index)!!.toFloat()
+    override fun decodeDoubleElement(descriptor: SerialDescriptor, index: Int): Double
+            = takeStrElement(descriptor, index)!!.toDouble()
+    override fun decodeCharElement(descriptor: SerialDescriptor, index: Int): Char
+            = takeStrElement(descriptor, index)!!.single()
+    override fun decodeStringElement(descriptor: SerialDescriptor, index: Int): String
+            = takeStrElement(descriptor, index)!!
+
+    override fun endStructure(descriptor: SerialDescriptor) {
+    }
 
     @Suppress("UNCHECKED_CAST")
     override fun <T> decodeSerializableValue(deserializer: DeserializationStrategy<T>): T {

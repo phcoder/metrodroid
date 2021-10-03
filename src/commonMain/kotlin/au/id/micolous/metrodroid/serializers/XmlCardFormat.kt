@@ -124,8 +124,8 @@ fun filterBadXMLChars(input: String): String {
         if (c == '&' && i < input.length - 3 && input[i+1] == '#' && input[i+2] == '0' && input[i+3] == ';') {
             i += 3
         } else if (c == '\n' || c == '\r' || c == '\t' ||
-                c.toInt() in 0x20..0xd7ff ||
-                c.toInt() in 0xe000..0xfffd) {
+                c.code in 0x20..0xd7ff ||
+                c.code in 0xe000..0xfffd) {
             o.append(c)
         } else if (isHighSurrogate(c) && i < input.length - 1) {
             o.append(c)
@@ -138,7 +138,7 @@ fun filterBadXMLChars(input: String): String {
     return o.toString()
 }
 
-private fun isHighSurrogate(c: Char): Boolean = (c.toInt() and 0xffff) in 0xD800..0xDB7F
+private fun isHighSurrogate(c: Char): Boolean = (c.code and 0xffff) in 0xD800..0xDB7F
 
 class XMLInput internal constructor(private val parent: NodeWrapper,
                                     private val strict: Boolean,

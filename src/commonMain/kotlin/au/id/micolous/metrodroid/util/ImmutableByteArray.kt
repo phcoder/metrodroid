@@ -343,7 +343,7 @@ class ImmutableByteArray private constructor(
             return value
         }
 
-        fun fromASCII(s: String) = ImmutableByteArray(mData = s.map { it.toByte() }.toByteArray())
+        fun fromASCII(s: String) = ImmutableByteArray(mData = s.map { it.code.toByte() }.toByteArray())
 
         fun fromUTF8(s: String) = ImmutableByteArray(mData = s.encodeToByteArray())
 

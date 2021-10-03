@@ -65,7 +65,7 @@ enum class KeyFormat {
         private fun rawFormat(length: Int) = if (isRawMifareClassicKeyFileLength(length)) RAW_MFC else UNKNOWN
 
         fun detectKeyFormat(data: ByteArray): KeyFormat {
-            if (data[0] != '{'.toByte()) {
+            if (data[0] != '{'.code.toByte()) {
                 // This isn't a JSON file.
                 Log.d(TAG, "couldn't find starting {")
                 return rawFormat(data.size)
@@ -78,12 +78,11 @@ enum class KeyFormat {
                     Log.d(TAG, "unsupported encoding at byte $i")
                     return rawFormat(data.size)
                 }
-                if (c in listOf('\n'.toByte(), '\r'.toByte(), '\t'.toByte(),
-                                ' '.toByte())) {
+                if (c in listOf('\n', '\r', '\t', ' ').map { it.code.toByte() }) {
                     continue
                 }
 
-                if (c == '}'.toByte()) {
+                if (c == '}'.code.toByte()) {
                     break
                 }
 

@@ -177,9 +177,10 @@ class AddKeyActivity : MetrodroidActivity() {
     }
 
     private fun drawUI() {
+        val cardText = findViewById<View>(R.id.card_id) as TextView
         if (Preferences.hideCardNumbers) {
             if (mKeyData?.uid != null) {
-                (findViewById<View>(R.id.card_id) as TextView).setText(R.string.hidden_card_number)
+                cardText.setText(R.string.hidden_card_number)
             }
 
             (findViewById<View>(R.id.key_data) as TextView).text = Localizer.localizePlural(R.plurals.hidden_key_data,
@@ -187,7 +188,7 @@ class AddKeyActivity : MetrodroidActivity() {
                     mKeyData?.sourceDataLength ?: 0)
         } else {
             if (mKeyData?.uid != null) {
-                (findViewById<View>(R.id.card_id) as TextView).text = mKeyData?.uid
+                cardText.text = mKeyData?.uid
             }
 
             // FIXME: Display keys better.
@@ -218,11 +219,11 @@ class AddKeyActivity : MetrodroidActivity() {
 
         if (mKeyData?.uid != null) {
             findViewById<View>(R.id.directions).visibility = View.GONE
-            findViewById<View>(R.id.card_id).visibility = View.VISIBLE
+            cardText.visibility = View.VISIBLE
             findViewById<View>(R.id.add).isEnabled = true
         } else {
             findViewById<View>(R.id.directions).visibility = View.VISIBLE
-            findViewById<View>(R.id.card_id).visibility = View.GONE
+            cardText.visibility = View.GONE
             findViewById<View>(R.id.add).isEnabled = false
         }
     }

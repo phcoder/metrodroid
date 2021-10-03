@@ -10,8 +10,7 @@ import org.xmlpull.v1.XmlPullParserFactory
 import org.xmlpull.v1.XmlSerializer
 import java.io.InputStream
 import java.io.StringWriter
-
-import java.util.NoSuchElementException
+import java.util.*
 
 private object XmlPullFactory {
     private val factory: XmlPullParserFactory = XmlPullParserFactory.newInstance()
@@ -104,7 +103,7 @@ private class XmlPullParserIterator(
         mSerializer!!.text(filterBadXMLChars(mxpp.text))
     }
 
-    private fun isCard(s: String) = s.toLowerCase() == "card"
+    private fun isCard(s: String) = s.toLowerCase(Locale.US) == "card"
 
     @SuppressWarnings("CallToSuspiciousStringMethod")
     private fun prepareMore(): Boolean {
@@ -116,7 +115,7 @@ private class XmlPullParserIterator(
                     // We have an root tag!
                     mRootTag = mxpp.name
 
-                    when (mRootTag?.toLowerCase()) {
+                    when (mRootTag?.toLowerCase(Locale.US)) {
                         "card" -> newCard()
                         "cards" -> {}
                         else -> {

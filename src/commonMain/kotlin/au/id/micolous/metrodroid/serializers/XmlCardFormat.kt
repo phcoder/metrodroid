@@ -41,11 +41,15 @@ import au.id.micolous.metrodroid.time.MetroTimeZone
 import au.id.micolous.metrodroid.time.TimestampFull
 import au.id.micolous.metrodroid.util.ImmutableByteArray
 import kotlinx.serialization.*
-import kotlinx.serialization.CompositeDecoder.Companion.READ_DONE
-import kotlinx.serialization.CompositeDecoder.Companion.UNKNOWN_NAME
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.StructureKind
+import kotlinx.serialization.encoding.CompositeDecoder
+import kotlinx.serialization.encoding.CompositeDecoder.Companion.DECODE_DONE
+import kotlinx.serialization.encoding.CompositeDecoder.Companion.UNKNOWN_NAME
+import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.internal.EnumDescriptor
+import kotlinx.serialization.modules.EmptySerializersModule
+import kotlinx.serialization.modules.SerializersModule
 import kotlin.native.concurrent.SharedImmutable
 
 private const val TAG = "XmlCardFormat"
@@ -136,8 +140,9 @@ class XMLInput internal constructor(private val parent: NodeWrapper,
                                     private val skippable: Set<String>,
                                     private val ignore: Set<String> = emptySet(),
                                     private var state: State = State.ATTRIBUTES_AND_TAGS_KV_PHASE_1,
-                                    private val listIdxElem: String? = null) :
-        ElementValueDecoder() {
+                                    private val listIdxElem: String? = null,
+                                    override val serializersModule: SerializersModule) :
+    CompositeDecoder, Decoder {
     private var curTagIndex: Int = -1
     private var curCounter = -1
     private val attributes = parent.attributes
@@ -170,7 +175,7 @@ class XMLInput internal constructor(private val parent: NodeWrapper,
             else -> children[curTagIndex]
         }*/
 
-    override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeDecoder {
+    override fun beginStructure(desc: SerialDescriptor): CompositeDecoder {
         if (curCounter == -1)
             return this
         val newState = when (desc.kind) {
@@ -186,8 +191,11 @@ class XMLInput internal constructor(private val parent: NodeWrapper,
         return XMLInput(newNode, state = newState, strict = strict,
                 listIdxElem = computeIdxElem(),
                 skippable = listOfNotNull(listIdxElem).toSet(),
-                ignore = desc.getEntityAnnotations().filterIsInstance<XMLIgnore>()
-                        .map { it.ignore }.toSet())
+                ignore = desc.annotations
+                    .filterIsInstance<XMLIgnore>()
+                    .map { it.ignore }.toSet(),
+                serializersModule = serializersModule
+        )
     }
 
     private fun computeIdxElem(): String? {
@@ -197,7 +205,7 @@ class XMLInput internal constructor(private val parent: NodeWrapper,
     override fun decodeElementIndex(desc: SerialDescriptor): Int {
         while (true) {
             if (state != State.MAP_KEY && !nextNode())
-                return READ_DONE
+                return DECODE_DONE
             elementAnnotations = null
             val id = when (state) {
                 State.TAGS_LIST -> return 0
@@ -318,21 +326,22 @@ class XMLInput internal constructor(private val parent: NodeWrapper,
     override fun decodeChar(): Char = takeStr().single()
     override fun decodeString(): String = takeStr()
 
-    override fun decodeEnum(enumDescription: EnumDescriptor): Int = enumDescription.getElementIndex(takeStr())
+    override fun decodeEnum(enumDescription: SerialDescriptor): Int
+        = enumDescription.getElementIndex(takeStr())
 
     @Suppress("UNCHECKED_CAST")
     override fun <T> decodeSerializableValue(deserializer: DeserializationStrategy<T>): T {
-        when (deserializer.descriptor.name) {
-            TimestampFull.serializer().descriptor.name ->
+        when (deserializer.descriptor.serialName) {
+            TimestampFull.serializer().descriptor.serialName ->
                 return TimestampFull(timeInMillis = decodeLong(), tz = MetroTimeZone.LOCAL) as T
-            ImmutableByteArray.Companion.descriptor.name -> {
+            ImmutableByteArray.Companion.descriptor.serialName -> {
                 return when {
                     elementAnnotations.orEmpty().filterIsInstance<XMLDesfireManufacturingData>().isNotEmpty() -> super.decodeSerializableValue(DesfireManufacturingDataXmlAdapter.serializer()).makeRaw()
                     elementAnnotations.orEmpty().filterIsInstance<XMLHex>().isNotEmpty() -> ImmutableByteArray.fromHex(decodeString())
                     else -> ImmutableByteArray.fromBase64(decodeString())
                 } as T
             }
-            ClassicSectorRaw.serializer().descriptor.name -> {
+            ClassicSectorRaw.serializer().descriptor.serialName -> {
                 val a = super.decodeSerializableValue(ClassicSectorRawXmlAdapter.serializer())
                 return ClassicSectorRaw(blocks = a.blocks.map { it.data },
                         isUnauthorized = a.isUnauthorized,
@@ -340,12 +349,12 @@ class XMLInput internal constructor(private val parent: NodeWrapper,
                         keyA = if (a.keyType == "KeyB") null else a.key,
                         keyB = if (a.keyType == "KeyB") a.key else null) as T
             }
-            RawDesfireFile.serializer().descriptor.name -> {
+            RawDesfireFile.serializer().descriptor.serialName -> {
                 val a = super.decodeSerializableValue(DesfireFileXmlAdapter.serializer())
                 return RawDesfireFile(data = a.data, settings = a.settings?.toRaw(),
                         error = a.error, isUnauthorized = a.unauthorized) as T
             }
-            ISO7816AppSerializer.descriptor.name -> {
+            ISO7816AppSerializer.descriptor.serialName -> {
                 val a = super.decodeSerializableValue(ISO7816ApplicationXmlAdapter.serializer())
                 return a.convert() as T
             }
@@ -543,7 +552,8 @@ fun readCardXML(root: NodeWrapper): Card = logAndSwiftWrap("XmlCardFormat", "XML
     val cardType = root.attributes["type"] ?: throw Exception("type attribute not found")
     val xi = XMLInput(root, strict = cardType.toInt() != CardType.CEPAS.toInteger(),
             ignore = setOf("type", "id", "scanned_at", "label"),
-            skippable = setOf("ultralightType", "idm"))
+            skippable = setOf("ultralightType", "idm"),
+            serializersModule = EmptySerializersModule)
     val tagId = ImmutableByteArray.fromHex(root.attributes.getValue("id"))
     val scannedAt = TimestampFull(timeInMillis = root.attributes.getValue("scanned_at").toLong(),
             tz = MetroTimeZone.LOCAL)
@@ -551,22 +561,22 @@ fun readCardXML(root: NodeWrapper): Card = logAndSwiftWrap("XmlCardFormat", "XML
     when (cardType.toInt()) {
         CardType.MifareClassic.toInteger() -> Card(
                 tagId = tagId, scannedAt = scannedAt, label = label,
-                mifareClassic = xi.decode(ClassicCard.serializer()))
+                mifareClassic = xi.decodeSerializableValue(ClassicCard.serializer()))
         CardType.MifareUltralight.toInteger() -> Card(
                 tagId = tagId, scannedAt = scannedAt, label = label,
-                mifareUltralight = xi.decode(UltralightCard.serializer()))
+                mifareUltralight = xi.decodeSerializableValue(UltralightCard.serializer()))
         CardType.MifareDesfire.toInteger() -> Card(
                 tagId = tagId, scannedAt = scannedAt, label = label,
-                mifareDesfire = xi.decode(DesfireCard.serializer()))
+                mifareDesfire = xi.decodeSerializableValue(DesfireCard.serializer()))
         CardType.CEPAS.toInteger() -> Card(
                 tagId = tagId, scannedAt = scannedAt, label = label,
-                cepasCompat = xi.decode(CEPASCard.serializer()))
+                cepasCompat = xi.decodeSerializableValue(CEPASCard.serializer()))
         CardType.FeliCa.toInteger() -> Card(
                 tagId = tagId, scannedAt = scannedAt, label = label,
-                felica = xi.decode(FelicaCard.serializer()))
+                felica = xi.decodeSerializableValue(FelicaCard.serializer()))
         CardType.ISO7816.toInteger() -> Card(
                 tagId = tagId, scannedAt = scannedAt, label = label,
-                iso7816 = xi.decode(ISO7816Card.serializer()))
+                iso7816 = xi.decodeSerializableValue(ISO7816Card.serializer()))
         else -> throw Exception("Unknown card type $cardType")
     }
 }

@@ -1,10 +1,5 @@
-import kotlinx.io.core.AbstractInput
-import kotlinx.io.core.ExperimentalIoApi
-import kotlinx.io.core.IoBuffer
-import kotlin.math.min
-
 /*
- * ImmutableByteArray.kt
+ * ByteArrayInput.kt
  *
  * Copyright (C) 2021 Google
  *
@@ -21,6 +16,13 @@ import kotlin.math.min
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+package au.id.micolous.metrodroid.util
+
+import kotlinx.io.core.AbstractInput
+import kotlinx.io.core.ExperimentalIoApi
+import kotlinx.io.core.IoBuffer
+import kotlin.math.min
 
 @ExperimentalIoApi
 class ByteArrayInput (val ba: ByteArray, var offset: Int = 0,

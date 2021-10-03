@@ -1,7 +1,7 @@
 package au.id.micolous.metrodroid.serializers
 
-import ByteArrayInput
 import au.id.micolous.metrodroid.card.Card
+import au.id.micolous.metrodroid.util.ByteArrayInput
 import kotlinx.io.core.Input
 
 /**

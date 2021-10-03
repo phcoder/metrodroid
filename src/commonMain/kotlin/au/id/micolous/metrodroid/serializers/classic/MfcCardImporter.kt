@@ -1,6 +1,5 @@
 package au.id.micolous.metrodroid.serializers.classic
 
-import ByteArrayInput
 import au.id.micolous.metrodroid.card.Card
 import au.id.micolous.metrodroid.card.classic.ClassicCard
 import au.id.micolous.metrodroid.card.classic.ClassicSector
@@ -8,6 +7,7 @@ import au.id.micolous.metrodroid.card.classic.ClassicSectorRaw
 import au.id.micolous.metrodroid.card.classic.UnauthorizedClassicSector
 import au.id.micolous.metrodroid.serializers.CardImporter
 import au.id.micolous.metrodroid.time.TimestampFull
+import au.id.micolous.metrodroid.util.ByteArrayInput
 import au.id.micolous.metrodroid.util.ImmutableByteArray
 import au.id.micolous.metrodroid.util.toImmutable
 import kotlinx.io.core.ExperimentalIoApi

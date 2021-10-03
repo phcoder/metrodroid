@@ -38,6 +38,7 @@ import kotlin.native.concurrent.SharedImmutable
 data class MetroTimeZone(val olson: String): Parcelable {
     override fun toString(): String = olson
 
+    @OptIn(ExperimentalSerializationApi::class)
     @Serializer(forClass = MetroTimeZone::class)
     companion object : KSerializer<MetroTimeZone> {
         override fun serialize(encoder: Encoder, obj: MetroTimeZone) {

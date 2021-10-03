@@ -57,26 +57,32 @@ private const val TAG = "XmlCardFormat"
 private val aliases = mapOf(
         "partial_read" to "isPartialRead")
 
+@OptIn(ExperimentalSerializationApi::class)
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY)
 annotation class XMLId(val id: String)
 
+@OptIn(ExperimentalSerializationApi::class)
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY)
 annotation class XMLInline
 
+@OptIn(ExperimentalSerializationApi::class)
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY)
 annotation class XMLHex
 
+@OptIn(ExperimentalSerializationApi::class)
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY)
 annotation class XMLListIdx(val idxElem: String)
 
+@OptIn(ExperimentalSerializationApi::class)
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY)
 annotation class XMLDesfireManufacturingData
 
+@OptIn(ExperimentalSerializationApi::class)
 @SerialInfo
 @Target(AnnotationTarget.CLASS)
 annotation class XMLIgnore(val ignore: String)
@@ -174,6 +180,7 @@ class XMLInput internal constructor(private val parent: NodeWrapper,
             else -> children[curTagIndex]
         }*/
 
+    @OptIn(ExperimentalSerializationApi::class)
     override fun beginStructure(desc: SerialDescriptor): CompositeDecoder {
         if (curCounter == -1)
             return this

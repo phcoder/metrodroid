@@ -124,7 +124,7 @@ object NumberUtils {
         .toInt() }.toIntArray()
 
     private fun luhnChecksum(cardNumber: String): Int {
-        val checksum = digitsOf(cardNumber).reversed().withIndex().sumBy { (i, dig) ->
+        val checksum = digitsOf(cardNumber).reversed().withIndex().sumOf { (i, dig) ->
             if (i % 2 == 1)
                 // we treat it as a 1-indexed array
                 // so the first digit is odd

@@ -44,7 +44,7 @@ class MctCardImporter : CardImporter {
         // Largest MFC is 4K. hex brings it up to 8K. Newlines and +Sector
         // Add less than 2x. So 16K chars is the most we are interested in
         // It should be ASCII, but let's be safe and allocate 32K
-        stream.forEachLine(maxSize=32768) { lineRaw ->
+        stream.forEachLine { lineRaw ->
             val line = lineRaw.trim()
             if (line.startsWith("+Sector:")) {
                 flushSector(sectors, curSector, curBlocks, lastBlock)

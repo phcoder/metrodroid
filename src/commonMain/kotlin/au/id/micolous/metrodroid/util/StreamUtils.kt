@@ -24,10 +24,10 @@ import kotlinx.io.charsets.Charsets
 import kotlinx.io.core.String
 import kotlinx.io.core.readBytes
 
-fun Input.readToString(maxSize: Int? = null) : String = String(
+fun Input.readToString() : String = String(
             bytes = this.readBytes(),
             charset = Charsets.UTF_8)
 
-fun Input.forEachLine(maxSize: Int? = null, function: (String) -> Unit) {
-    this.readToString(maxSize=maxSize).split('\n', '\r').filter { it.isNotEmpty() }.forEach(function)
+fun Input.forEachLine(function: (String) -> Unit) {
+    this.readToString().split('\n', '\r').filter { it.isNotEmpty() }.forEach(function)
 }

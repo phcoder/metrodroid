@@ -41,7 +41,7 @@ buildscript {
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-multiplatform'
 apply plugin: 'checkstyle'
-apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-parcelize'
 apply plugin: 'kotlinx-serialization'
 apply plugin: 'com.getkeepsafe.dexcount'
 
@@ -226,7 +226,6 @@ dependencies {
     implementation project(':material-design-icons')
     implementation project(':proto')
 
-    implementation "org.jetbrains.kotlinx:kotlinx-io:$kotlinio_version"
     implementation "org.jetbrains.kotlinx:kotlinx-io-jvm:$kotlinio_version"
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinserial_version"
  
@@ -535,6 +534,9 @@ android {
         debug {
             pseudoLocalesEnabled true
             buildConfigField "String[]", "AVAILABLE_TRANSLATIONS", "new String[]{\""+androidLanguageList.join("\", \"")+"\", \"en-rXA\", \"ar-rXB\"}"
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'),
+                    'proguard.cfg'
         }
         dev.initWith(buildTypes.debug)
         dev {
@@ -644,10 +646,6 @@ kotlin.sourceSets.all {
     }
 }
 
-androidExtensions {
-    // Needed for kotlinx.android.parcel.Parcelize
-    experimental = true
-}
 repositories {
     mavenCentral()
 }

@@ -22,17 +22,13 @@ package au.id.micolous.metrodroid.serializers
 import au.id.micolous.metrodroid.card.Card
 import au.id.micolous.metrodroid.util.readToString
 
-import kotlinx.io.charsets.encodeToByteArray
 import kotlinx.io.core.Input
 import kotlinx.io.core.Output
 import kotlinx.serialization.*
-import kotlinx.serialization.encoding.CompositeDecoder.Companion.READ_ALL
-import kotlinx.serialization.encoding.CompositeDecoder.Companion.READ_DONE
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.SerialKind
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.CompositeDecoder.Companion.DECODE_DONE
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.internal.SerialClassDescImpl
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -46,8 +42,8 @@ internal val JsonElement.jsonObjectOrNull: JsonObject?
 
 object JsonKotlinFormat : CardExporter, CardImporter {
     override fun writeCard(s: Output, card: Card) {
-        val b = writeCard(card).encodeToByteArray()
-        s.writeFully(b, 0, b.length)
+        val b = writeCard(card).toString().encodeToByteArray()
+        s.writeFully(b, 0, b.size)
     }
 
     private val jsonOutputFormat = Json {
@@ -80,17 +76,19 @@ object JsonKotlinFormat : CardExporter, CardImporter {
 
 // Standard polymorphic serializer works fine but let's avoid putting
 // full class names in stored formats
-abstract class MultiTypeSerializer<T : Any> : KSerializer<T> {
+abstract class MultiTypeSerializer<T> : KSerializer<T> {
     abstract val name: String
+    @OptIn(InternalSerializationApi::class)
     override val descriptor: SerialDescriptor
-    get() = object : SerialClassDescImpl(name) {
-        override val kind: SerialKind = UnionKind.POLYMORPHIC
-
-        init {
-            addElement("type")
-            addElement("contents")
-        }
-    }
+    get() = buildSerialDescriptor(
+        serialName = name,
+        kind = PolymorphicKind.OPEN,
+        typeParameters = arrayOf(
+            buildSerialDescriptor(serialName = "type",
+                kind = PrimitiveKind.STRING),
+            buildClassSerialDescriptor(serialName = "contents")
+        )
+    )
 
     @Suppress("UNCHECKED_CAST")
     override fun serialize(encoder: Encoder, value: T) {
@@ -110,17 +108,19 @@ abstract class MultiTypeSerializer<T : Any> : KSerializer<T> {
     override fun deserialize(decoder: Decoder): T {
         @Suppress("NAME_SHADOWING")
         val input = decoder.beginStructure(descriptor)
+        if (input.decodeSequentially()) {
+            val klassName = input.decodeStringElement(descriptor, 0)
+            val loader = str2serializer(klassName) as KSerializer<T>
+            val value = input.decodeSerializableElement(descriptor, 1, loader)
+            input.endStructure(descriptor)
+            return value
+        }
+
         var klassName: String? = null
         var value: T? = null
         mainLoop@ while (true) {
             when (input.decodeElementIndex(descriptor)) {
-                READ_ALL -> {
-                    klassName = input.decodeStringElement(descriptor, 0)
-                    val loader = str2serializer(klassName) as KSerializer<T>
-                    value = input.decodeSerializableElement(descriptor, 1, loader)
-                    break@mainLoop
-                }
-                READ_DONE -> {
+                DECODE_DONE -> {
                     break@mainLoop
                 }
                 0 -> {

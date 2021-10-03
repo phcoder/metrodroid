@@ -43,6 +43,8 @@ import au.id.micolous.metrodroid.util.ImmutableByteArray
 import kotlinx.serialization.*
 import kotlinx.serialization.CompositeDecoder.Companion.READ_DONE
 import kotlinx.serialization.CompositeDecoder.Companion.UNKNOWN_NAME
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.StructureKind
 import kotlinx.serialization.internal.EnumDescriptor
 import kotlin.native.concurrent.SharedImmutable
 

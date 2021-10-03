@@ -41,7 +41,7 @@ buildscript {
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-multiplatform'
 apply plugin: 'checkstyle'
-apply plugin: 'kotlin-parcelize'
+apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlinx-serialization'
 apply plugin: 'com.getkeepsafe.dexcount'
 

@@ -43,6 +43,7 @@ import java.util.zip.ZipOutputStream
 import au.id.micolous.metrodroid.provider.CardDBHelper
 import au.id.micolous.metrodroid.provider.CardProvider
 import au.id.micolous.metrodroid.provider.CardsTableColumns
+import java.io.ByteArrayInputStream
 
 import kotlin.text.Charsets
 
@@ -144,7 +145,8 @@ object ExportHelper {
     fun importCards(s: String,
                     importer: CardMultiImporter,
                     context: Context): Collection<Uri> {
-        val it = importer.readCards(s) ?: return emptyList()
+        val it = importer.readCards(ByteArrayInputStream(s.encodeToByteArray()))
+            ?: return emptyList()
 
         return importCards(it, context)
     }

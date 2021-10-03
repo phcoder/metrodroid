@@ -36,6 +36,7 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.validate
 import com.github.ajalt.clikt.parameters.types.file
 import kotlinx.coroutines.runBlocking
+import kotlinx.io.streams.asOutput
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.file.Paths
@@ -166,7 +167,7 @@ class SmartCard: CliktCommand(help="Communicates with a card using the PC/SC API
             }
 
             FileOutputStream(fn).use {
-                JsonKotlinFormat.writeCard(it, card)
+                JsonKotlinFormat.writeCard(it.asOutput(), card)
                 println("Wrote card data to: ${fn.path}")
             }
         }

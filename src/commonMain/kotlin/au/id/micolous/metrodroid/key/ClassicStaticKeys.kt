@@ -84,7 +84,7 @@ class ClassicStaticKeys private constructor(override val description: String?,
         fun fromJSON(jsonRoot: JsonObject, defaultBundle: String) = try {
             ClassicStaticKeys(
                     description = jsonRoot[JSON_TAG_ID_DESC]?.jsonPrimitiveOrNull?.contentOrNull,
-                    keys = ClassicKeysImpl.keysFromJSON(jsonRoot, false, defaultBundle),
+                    keys = keysFromJSON(jsonRoot, false, defaultBundle),
                     sourceDataLength = jsonRoot.toString().length)
         } catch (e: Exception) {
             Log.e("ClassicStaticKeys", "parsing failed", e)

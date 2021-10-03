@@ -46,10 +46,10 @@ enum class KeyFormat {
     JSON_MFC_STATIC;
 
     val isJSON: Boolean
-        get() = (this == KeyFormat.JSON
-                || this == KeyFormat.JSON_MFC
-                || this == KeyFormat.JSON_MFC_NO_UID
-                || this == KeyFormat.JSON_MFC_STATIC)
+        get() = (this == JSON
+                || this == JSON_MFC
+                || this == JSON_MFC_NO_UID
+                || this == JSON_MFC_STATIC)
 
     companion object {
         const val TAG = "KeyFormat"
@@ -62,7 +62,7 @@ enum class KeyFormat {
                     length <= MIFARE_SECTOR_COUNT_MAX * MIFARE_KEY_LENGTH * 2
         }
 
-        private fun rawFormat(length: Int) = if (isRawMifareClassicKeyFileLength(length)) KeyFormat.RAW_MFC else KeyFormat.UNKNOWN
+        private fun rawFormat(length: Int) = if (isRawMifareClassicKeyFileLength(length)) RAW_MFC else UNKNOWN
 
         fun detectKeyFormat(data: ByteArray): KeyFormat {
             if (data[0] != '{'.toByte()) {
@@ -89,7 +89,7 @@ enum class KeyFormat {
 
                 // This isn't a JSON file.
                 Log.d(TAG, "couldn't find ending }")
-                return if (isRawMifareClassicKeyFileLength(data.size)) KeyFormat.RAW_MFC else KeyFormat.UNKNOWN
+                return if (isRawMifareClassicKeyFileLength(data.size)) RAW_MFC else UNKNOWN
             }
 
             // Now see if it actually parses.
@@ -102,16 +102,16 @@ enum class KeyFormat {
                 when(type) {
                     CardKeys.TYPE_MFC ->
                         return if (o[CardKeys.JSON_TAG_ID_KEY]?.jsonPrimitiveOrNull?.contentOrNull?.isEmpty() != false) {
-                            KeyFormat.JSON_MFC_NO_UID
+                            JSON_MFC_NO_UID
                         } else {
-                            KeyFormat.JSON_MFC
+                            JSON_MFC
                         }
 
-                    CardKeys.TYPE_MFC_STATIC -> return KeyFormat.JSON_MFC_STATIC
+                    CardKeys.TYPE_MFC_STATIC -> return JSON_MFC_STATIC
                 }
 
                 // Unhandled JSON format
-                return KeyFormat.JSON
+                return JSON
             } catch (e: Exception) {
                 Log.d(TAG, "couldn't parse JSON object in detectKeyFormat", e)
             }

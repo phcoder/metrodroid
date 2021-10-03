@@ -130,8 +130,8 @@ data class ClassicSectorKey internal constructor(
 
     override fun toJSON(sector: Int): JsonObject = buildJsonObject {
             when (type) {
-                ClassicSectorKey.KeyType.A -> KEY_TYPE to TYPE_KEYA
-                ClassicSectorKey.KeyType.B -> KEY_TYPE to TYPE_KEYB
+                KeyType.A -> KEY_TYPE to TYPE_KEYA
+                KeyType.B -> KEY_TYPE to TYPE_KEYB
                 else -> {
                 }
             }

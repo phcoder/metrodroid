@@ -52,14 +52,14 @@ interface CardKeys {
          * See https://github.com/micolous/metrodroid/wiki/Importing-MIFARE-Classic-keys#json
          */
         fun fromJSON(keyJSON: JsonObject, cardType: String, defaultBundle: String): CardKeys? = when (cardType) {
-            CardKeys.TYPE_MFC -> ClassicCardKeys.fromJSON(keyJSON, defaultBundle)
-            CardKeys.TYPE_MFC_STATIC -> ClassicStaticKeys.fromJSON(keyJSON, defaultBundle)
+            TYPE_MFC -> ClassicCardKeys.fromJSON(keyJSON, defaultBundle)
+            TYPE_MFC_STATIC -> ClassicStaticKeys.fromJSON(keyJSON, defaultBundle)
             else -> throw IllegalArgumentException("Unknown card type for key: $cardType")
         }
 
         fun fromJSON(keyJSON: JsonObject, defaultBundle: String): CardKeys? = fromJSON(
             keyJSON,
-            keyJSON[CardKeys.JSON_KEY_TYPE_KEY]?.jsonPrimitiveOrNull?.contentOrNull ?: "",
+            keyJSON[JSON_KEY_TYPE_KEY]?.jsonPrimitiveOrNull?.contentOrNull ?: "",
             defaultBundle)
 
         val jsonParser get() = CardSerializer.jsonPlainStable

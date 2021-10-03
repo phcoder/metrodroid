@@ -95,7 +95,7 @@ data class ISO7816Selector (private val path: List<ISO7816SelectorElement>) {
         fun makeSelector(folder: ImmutableByteArray, file: Int): ISO7816Selector =
                 ISO7816Selector(listOf(ISO7816SelectorByName(folder), ISO7816SelectorById(file)))
 
-        @OptIn(kotlinx.serialization.InternalSerializationApi::class)
+        @OptIn(InternalSerializationApi::class)
         override val descriptor: SerialDescriptor =
             buildSerialDescriptor("ISO7816Selector", PrimitiveKind.STRING)
 

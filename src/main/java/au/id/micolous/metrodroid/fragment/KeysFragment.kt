@@ -136,7 +136,7 @@ class KeysFragment : ListFragment(), AdapterView.OnItemLongClickListener {
         }
     }
 
-    private val mLoaderCallbacks = object : LoaderManager.LoaderCallbacks<android.database.Cursor> {
+    private val mLoaderCallbacks = object : LoaderManager.LoaderCallbacks<Cursor> {
         override fun onCreateLoader(i: Int, bundle: Bundle?): Loader<Cursor> {
             return KeyLoader(MetrodroidApplication.instance)
         }

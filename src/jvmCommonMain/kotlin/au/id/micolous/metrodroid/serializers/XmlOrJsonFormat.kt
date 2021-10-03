@@ -4,12 +4,13 @@ import au.id.micolous.metrodroid.card.Card
 import au.id.micolous.metrodroid.multi.Log
 import au.id.micolous.metrodroid.serializers.classic.MfcCardImporter
 import au.id.micolous.metrodroid.util.peekAndSkipSpace
+import au.id.micolous.metrodroid.util.readToString
 import kotlinx.io.InputStream
 import kotlinx.io.charsets.Charsets
 import java.io.PushbackInputStream
 import java.util.zip.ZipInputStream
 
-class XmlCardFormat : CardImporter {
+class XmlCardFormat : CardImporter, CardMultiImporter {
     override fun readCard(stream: InputStream): Card = readCardXML(stream)
 
     override fun readCards(stream: InputStream): Iterator<Card> {
@@ -17,14 +18,14 @@ class XmlCardFormat : CardImporter {
     }
 }
 
-class XmlOrJsonCardFormat : CardImporter {
+class XmlOrJsonCardFormat : CardImporter, CardMultiImporter {
     private val mfcFormat = MfcCardImporter()
 
     override fun readCards(stream: InputStream): Iterator<Card>? {
         val pb = PushbackInputStream(stream)
         when (pb.peekAndSkipSpace().toChar()) {
             '<' -> return iterateXmlCards(pb) { readCard(it) }
-            '[', '{' -> return AutoJsonFormat.readCards(pb)
+            '[', '{' -> return AutoJsonFormat.readCardList(pb.readToString()).iterator()
             'P' -> return readZip(pb).iterator()
             else -> return null
         }

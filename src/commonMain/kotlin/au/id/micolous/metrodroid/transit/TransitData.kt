@@ -157,7 +157,7 @@ abstract class TransitData : Parcelable {
     fun getLastUseDaystamp(): Daystamp? {
         // Find the last trip taken on the card.
         return trips?.mapNotNull { t -> t.endTimestamp ?: t.startTimestamp }?.map { it.toDaystamp() }
-                ?.maxBy { it.daysSinceEpoch }
+                ?.maxByOrNull { it.daysSinceEpoch }
     }
 
     /**

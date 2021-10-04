@@ -60,11 +60,12 @@ class CardTest : BaseInstrumentedTest() {
                 mifareClassic = ClassicCard(emptyList<ClassicSectorRaw>()))
 
         val json = JsonKotlinFormat.makeCardElement(c1)
-        val jsonString = json.toString()
+        val jsonString = JsonKotlinFormat.makeCardString(c1)
 
         assertEquals(
             1264982400000,
-            json.jsonObjectOrNull?.get("timeInMillis")?.jsonPrimitiveOrNull?.longOrNull)
+            json.jsonObjectOrNull?.get("scannedAt")?.jsonObjectOrNull?.get("timeInMillis")?.jsonPrimitiveOrNull?.longOrNull,
+        "Unexpected Json: $json")
         assertEquals(
             "00123456",
             json.jsonObjectOrNull?.get("tagId")?.jsonPrimitiveOrNull?.contentOrNull)

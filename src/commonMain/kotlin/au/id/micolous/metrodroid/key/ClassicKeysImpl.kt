@@ -43,21 +43,17 @@ abstract class ClassicKeysImpl : ClassicKeys {
         get () = keys.values.flatten().filterIsInstance<ClassicSectorKey>().map { it.key.toHexString() }.distinct().size +
                 keys.values.flatten().filter { it !is ClassicSectorKey }.size
 
-    private val keysJson: JsonArray
-        get() = buildJsonArray {
+    protected val baseJson: JsonObject
+        get() = buildJsonObject {
+            putJsonArray(KEYS) {
                 for ((sector, keys) in keys.entries.sortedBy { it.key }) {
                     keys.map { it.toJSON(sector) }.forEach {
                         add(it)
                     }
                 }
             }
-
-    protected val baseJson: JsonObject
-        get() = buildJsonObject {
-            KEYS to keysJson
-            CardKeys.JSON_KEY_TYPE_KEY to type
+            put(CardKeys.JSON_KEY_TYPE_KEY, type)
         }
-
 
     /**
      * Gets all keys for the card.

@@ -26,6 +26,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.buildJsonObject
 import au.id.micolous.metrodroid.serializers.jsonPrimitiveOrNull
+import kotlinx.serialization.json.JsonPrimitive
 
 /**
  * Helper for access to static MIFARE Classic keys. This can be used for keys that should be
@@ -51,7 +52,7 @@ class ClassicStaticKeys private constructor(override val description: String?,
         if (description == null)
             return baseJson
         return JsonObject(baseJson + buildJsonObject {
-            JSON_TAG_ID_DESC to description
+            put(JSON_TAG_ID_DESC, JsonPrimitive(description))
         })
     }
 

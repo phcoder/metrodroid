@@ -61,7 +61,7 @@ class ClassicCardKeys(override var uid: String?,
         if (uid == null)
             return baseJson
         val add = buildJsonObject {
-            CardKeys.JSON_TAG_ID_KEY to uid
+            put(CardKeys.JSON_TAG_ID_KEY, uid)
         }
         return JsonObject(baseJson + add)
     }

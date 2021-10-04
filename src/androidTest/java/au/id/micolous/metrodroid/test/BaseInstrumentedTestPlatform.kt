@@ -26,12 +26,22 @@ import androidx.test.platform.app.InstrumentationRegistry
 import au.id.micolous.metrodroid.MetrodroidApplication
 import au.id.micolous.metrodroid.util.Preferences
 import kotlinx.coroutines.runBlocking
+import kotlinx.io.streams.asInput
 import org.junit.runner.RunWith
 import java.io.DataInputStream
 import java.io.InputStream
 
 actual fun <T> runAsync(block: suspend () -> T) {
     runBlocking { block() }
+}
+
+actual fun loadAssetStream(path: String): InputStream? {
+    try {
+        return DataInputStream(
+            InstrumentationRegistry.getInstrumentation().context.assets.open(path, AssetManager.ACCESS_RANDOM))
+    } catch (e: Exception) {
+        return null
+    }
 }
 
 @RunWith(AndroidJUnit4::class)
@@ -83,13 +93,7 @@ actual abstract class BaseInstrumentedTestPlatform {
         setBooleanPref(Preferences.PREF_SHOW_LOCAL_AND_ENGLISH, state)
     }
 
-    actual fun loadAssetSafe(path: String) : InputStream? {
-        try {
-            return DataInputStream(context.assets.open(path, AssetManager.ACCESS_RANDOM))
-        } catch (e: Exception) {
-            return null
-        }
-    }
+    actual fun loadAssetSafe(path: String) : Input? = loadAssetStream(path).asInput()
 
     actual fun listAsset(path: String) : List <String>? = context.assets.list(path)?.toList()
 

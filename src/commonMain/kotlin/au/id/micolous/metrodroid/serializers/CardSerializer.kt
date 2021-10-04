@@ -29,7 +29,7 @@ object CardSerializer {
 
     @NativeThrows
     fun toJson(card: Card): JsonElement = logAndSwiftWrap ("Card", "Failed to serialize") {
-        JsonKotlinFormat.writeCard(card)
+        JsonKotlinFormat.makeCardElement(card)
     }
 
     @NativeThrows

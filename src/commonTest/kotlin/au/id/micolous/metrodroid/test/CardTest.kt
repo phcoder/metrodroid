@@ -59,7 +59,7 @@ class CardTest : BaseInstrumentedTest() {
                 d,
                 mifareClassic = ClassicCard(emptyList<ClassicSectorRaw>()))
 
-        val json = JsonKotlinFormat.writeCard(c1)
+        val json = JsonKotlinFormat.makeCardElement(c1)
         val jsonString = json.toString()
 
         assertEquals(

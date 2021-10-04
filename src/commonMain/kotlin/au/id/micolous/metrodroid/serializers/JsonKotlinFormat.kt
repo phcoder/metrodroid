@@ -42,7 +42,7 @@ internal val JsonElement.jsonObjectOrNull: JsonObject?
 
 object JsonKotlinFormat : CardExporter, CardImporter {
     override fun writeCard(s: Output, card: Card) {
-        val b = writeCard(card).toString().encodeToByteArray()
+        val b = makeCardString(card).encodeToByteArray()
         s.writeFully(b, 0, b.size)
     }
 
@@ -51,7 +51,8 @@ object JsonKotlinFormat : CardExporter, CardImporter {
         encodeDefaults = false
     }
 
-    fun writeCard(card: Card) = jsonOutputFormat.encodeToJsonElement(Card.serializer(), card)
+    fun makeCardElement(card: Card) = jsonOutputFormat.encodeToJsonElement(Card.serializer(), card)
+    fun makeCardString(card: Card) = jsonOutputFormat.encodeToString(makeCardElement(card))
 
     override fun readCard(stream: Input) =
             readCard(stream.readToString())

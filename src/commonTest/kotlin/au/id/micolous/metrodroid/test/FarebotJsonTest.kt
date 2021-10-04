@@ -35,10 +35,10 @@ class FarebotJsonTest : CardReaderWithAssetDumpsTest<AutoJsonFormat>(AutoJsonFor
             loadAsset("farebot/farebot.json").readToString())
         for ((ctr, card) in cards.withIndex()) {
             val json = JsonKotlinFormat.makeCardString(card)
-            Log.d("FarebotJsonTest", "reserial[$ctr] = " + json)
+            Log.d("FarebotJsonTest", "reserial[$ctr] = $json")
             val expected = loadSmallAssetBytes("farebot/metrodroid_$ctr.json")
             assertEquals(expected = expected.decodeToString().trim(),
-                         actual = json.toString().trim(),
+                         actual = json.trim(),
                          message = "Wrong reserialization for card $ctr")
         }
     }

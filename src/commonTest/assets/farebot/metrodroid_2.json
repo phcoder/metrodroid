@@ -6,7 +6,9 @@
     },
     "iso7816": {
         "applications": [
-            ["cepas", {
+            [
+                "cepas",
+                {
                     "generic": {
                     },
                     "purses": {

@@ -78,7 +78,7 @@ object JsonKotlinFormat : CardExporter, CardImporter {
 // full class names in stored formats
 abstract class MultiTypeSerializer<T> : KSerializer<T> {
     abstract val name: String
-    @OptIn(InternalSerializationApi::class)
+    @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
     override val descriptor: SerialDescriptor
     get() = buildSerialDescriptor(
         serialName = name,

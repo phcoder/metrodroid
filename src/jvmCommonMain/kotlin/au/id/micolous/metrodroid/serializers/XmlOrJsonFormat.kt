@@ -2,27 +2,29 @@ package au.id.micolous.metrodroid.serializers
 
 import au.id.micolous.metrodroid.card.Card
 import au.id.micolous.metrodroid.multi.Log
-import au.id.micolous.metrodroid.serializers.JsonKotlinFormat.readCard
 import au.id.micolous.metrodroid.serializers.classic.MfcCardImporter
 import au.id.micolous.metrodroid.util.peekAndSkipSpace
 import au.id.micolous.metrodroid.util.readToString
 import kotlinx.io.streams.asInput
+import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.io.PushbackInputStream
 import java.util.zip.ZipInputStream
 
 class XmlCardFormat : CardMultiImporter {
+    @OptIn(ExperimentalStdlibApi::class)
     override fun readCards(stream: InputStream): Iterator<Card>
-        = iterateXmlCards(stream) { readCard(it) }
+        = iterateXmlCards(stream) { readCardXML(ByteArrayInputStream(it.encodeToByteArray())) }
 }
 
 class XmlOrJsonCardFormat : CardMultiImporter {
     private val mfcFormat = MfcCardImporter()
 
+    @OptIn(ExperimentalStdlibApi::class)
     override fun readCards(stream: InputStream): Iterator<Card>? {
         val pb = PushbackInputStream(stream)
         when (pb.peekAndSkipSpace().toChar()) {
-            '<' -> return iterateXmlCards(pb) { readCard(it) }
+            '<' -> return iterateXmlCards(pb) { readCardXML(ByteArrayInputStream(it.encodeToByteArray())) }
             '[', '{' -> return AutoJsonFormat.readCardList(pb.asInput().readToString()).iterator()
             'P' -> return readZip(pb).iterator()
             else -> return null

@@ -1,6 +1,7 @@
 package au.id.micolous.metrodroid.serializers
 
 import au.id.micolous.metrodroid.card.Card
+import au.id.micolous.metrodroid.multi.Log
 import kotlinx.io.errors.IOException
 
 import org.jetbrains.annotations.NonNls
@@ -12,14 +13,21 @@ import java.io.InputStream
 import java.io.StringWriter
 import java.util.*
 
-private object XmlPullFactory {
-    private val factory: XmlPullParserFactory = XmlPullParserFactory.newInstance()
-    init {
-        factory.isNamespaceAware = true
+object XmlPullFactory {
+    private val factory: XmlPullParserFactory? by lazy {
+        try {
+            XmlPullParserFactory.newInstance()
+                ?.also {
+                    it.isNamespaceAware = true
+                }
+        } catch (e: Exception) {
+            Log.e("XMLPullParser", "Error initing XmlPullParserFactory: $e")
+            null
+        }
     }
 
-    fun newPullParser(): XmlPullParser = factory.newPullParser()
-    fun newSerializer(): XmlSerializer = factory.newSerializer()
+    fun newPullParser(): XmlPullParser = factory!!.newPullParser()
+    fun newSerializer(): XmlSerializer = factory!!.newSerializer()
 }
 
 internal fun iterateXmlCards(stream: InputStream, iter: (String) -> Card?): Iterator<Card> {

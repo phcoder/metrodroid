@@ -13,6 +13,7 @@ import au.id.micolous.metrodroid.util.toImmutable
 import kotlinx.io.core.ExperimentalIoApi
 import kotlinx.io.core.Input
 import kotlinx.io.core.readBytes
+import kotlinx.io.core.readBytesOf
 import kotlinx.io.errors.IOException
 
 class MfcCardImporter : CardImporter {
@@ -31,7 +32,7 @@ class MfcCardImporter : CardImporter {
                 else
                     4
 
-            val sectorData = stream.readBytes(16 * blockCount)
+            val sectorData = stream.readBytesOf(0, 16 * blockCount)
             if (sectorData.isEmpty() && sectorNum != 0) {
                  // We got to the end of the file.
                  break

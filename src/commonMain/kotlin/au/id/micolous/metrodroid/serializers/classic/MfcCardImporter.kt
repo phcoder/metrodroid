@@ -37,7 +37,7 @@ class MfcCardImporter : CardImporter {
                  break
             }
 
-            if (sectorData.size != 16) {
+            if (sectorData.size != 16 * blockCount) {
                 throw IOException("Incomplete MFC read at sector $sectorNum (${sectorData.size} bytes)")
             }
 

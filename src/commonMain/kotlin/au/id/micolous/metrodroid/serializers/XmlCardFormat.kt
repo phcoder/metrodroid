@@ -198,9 +198,7 @@ class XMLInput internal constructor(private val parent: NodeWrapper,
         return XMLInput(newNode, state = newState, strict = strict,
                 listIdxElem = computeIdxElem(),
                 skippable = listOfNotNull(listIdxElem).toSet(),
-                ignore = (0 until desc.elementsCount).map {
-                        desc.getElementAnnotations(it)
-                    }
+                ignore = desc.annotations
                     .filterIsInstance<XMLIgnore>()
                     .map { it.ignore }.toSet(),
                     serializersModule = serializersModule

@@ -102,7 +102,7 @@ class AddKeyActivity : MetrodroidActivity() {
 
         val intent = intent
         intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-        mPendingIntent = PendingIntent.getActivity(this, 0, intent, 0)
+        mPendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_MUTABLE)
 
         if (intent.action != null &&
                 intent.action == Intent.ACTION_VIEW &&

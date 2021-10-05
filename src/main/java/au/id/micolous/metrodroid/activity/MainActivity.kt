@@ -69,7 +69,7 @@ class MainActivity : MetrodroidActivity() {
 
             val intent = Intent(this, ReadingTagActivity::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_HISTORY)
-            mPendingIntent = PendingIntent.getActivity(this, 0, intent, 0)
+            mPendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_MUTABLE)
         }
 
         updateObfuscationNotice(mNfcAdapter != null)

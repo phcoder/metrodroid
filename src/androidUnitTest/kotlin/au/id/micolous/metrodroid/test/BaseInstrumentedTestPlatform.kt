@@ -23,6 +23,8 @@ import android.content.Context
 import au.id.micolous.metrodroid.MetrodroidApplication
 import au.id.micolous.metrodroid.util.Preferences
 import kotlinx.coroutines.runBlocking
+import kotlinx.io.core.Input
+import kotlinx.io.streams.asInput
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
@@ -31,6 +33,12 @@ import java.io.InputStream
 
 actual fun <T> runAsync(block: suspend () -> T) {
     runBlocking { block() }
+}
+
+actual fun loadAssetStream(path: String): InputStream? {
+    val uri = BaseInstrumentedTest::class.java.getResource("/$path")?.toURI() ?: return null
+    val file = File(uri)
+    return file.inputStream()
 }
 
 @RunWith(RobolectricTestRunner::class)
@@ -65,11 +73,7 @@ actual abstract class BaseInstrumentedTestPlatform {
         setBooleanPref(Preferences.PREF_SHOW_LOCAL_AND_ENGLISH, state)
     }
 
-    actual fun loadAssetSafe(path: String) : InputStream? {
-        val uri = BaseInstrumentedTest::class.java.getResource("/$path")?.toURI() ?: return null
-        val file = File(uri)
-        return file.inputStream()
-    }
+    actual fun loadAssetSafe(path: String) : Input? = loadAssetStream(path)?.asInput()
 
     actual fun listAsset(path: String) : List <String>? = null
 }

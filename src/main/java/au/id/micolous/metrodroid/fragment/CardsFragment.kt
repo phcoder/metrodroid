@@ -447,8 +447,8 @@ class CardsFragment : ExpandableListFragment(), SearchView.OnQueryTextListener {
             if (l < 4194304) {
                 return pb
             }
-            val s = runBlocking {
-                suspendCoroutine { cont ->
+            val s = runBlocking<Boolean> {
+                suspendCoroutine<Boolean> { cont ->
                     launch(Dispatchers.Main) {
                         AlertDialog.Builder(cardsFragment.activity)
                                 .setMessage(Localizer.localizeString(R.string.large_file_warning,

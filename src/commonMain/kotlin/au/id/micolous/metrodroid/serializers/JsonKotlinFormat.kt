@@ -52,7 +52,7 @@ object JsonKotlinFormat : CardExporter, CardImporter {
     }
 
     fun makeCardElement(card: Card) = jsonOutputFormat.encodeToJsonElement(Card.serializer(), card)
-    fun makeCardString(card: Card) = jsonOutputFormat.encodeToString(makeCardElement(card))
+    fun makeCardString(card: Card) = jsonOutputFormat.encodeToString(Card.serializer(), card)
 
     override fun readCard(stream: Input) =
             readCard(stream.readToString())

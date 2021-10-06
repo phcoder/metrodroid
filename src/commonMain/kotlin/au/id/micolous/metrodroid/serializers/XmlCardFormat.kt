@@ -48,7 +48,6 @@ import kotlinx.serialization.encoding.AbstractDecoder
 import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.CompositeDecoder.Companion.DECODE_DONE
 import kotlinx.serialization.encoding.CompositeDecoder.Companion.UNKNOWN_NAME
-import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
 import kotlin.native.concurrent.SharedImmutable
@@ -176,10 +175,10 @@ class XMLInput internal constructor(private val parent: NodeWrapper,
             else -> children[curTagIndex]
         }*/
 
-    override fun beginStructure(desc: SerialDescriptor): CompositeDecoder {
+    override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
         if (curCounter == -1)
             return this
-        val newState = when (desc.kind) {
+        val newState = when (descriptor.kind) {
             StructureKind.LIST -> State.TAGS_LIST
             StructureKind.MAP -> State.MAP_VALUE
             else -> State.ATTRIBUTES_AND_TAGS_KV_PHASE_1
@@ -192,7 +191,7 @@ class XMLInput internal constructor(private val parent: NodeWrapper,
         return XMLInput(newNode, state = newState, strict = strict,
                 listIdxElem = computeIdxElem(),
                 skippable = listOfNotNull(listIdxElem).toSet(),
-                ignore = desc.annotations
+                ignore = descriptor.annotations
                     .filterIsInstance<XMLIgnore>()
                     .map { it.ignore }.toSet(),
                     serializersModule = serializersModule
@@ -203,7 +202,7 @@ class XMLInput internal constructor(private val parent: NodeWrapper,
         return elementAnnotations?.filterIsInstance<XMLListIdx>()?.singleOrNull()?.idxElem
     }
 
-    override fun decodeElementIndex(desc: SerialDescriptor): Int {
+    override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
         while (true) {
             if (state != State.MAP_KEY && !nextNode())
                 return DECODE_DONE
@@ -216,12 +215,12 @@ class XMLInput internal constructor(private val parent: NodeWrapper,
                 State.MAP_VALUE -> {
                     state = State.MAP_KEY; return curCounter * 2
                 }
-                State.INLINE_LIST -> descInline(desc)
-                else -> descIndex(desc, currentKey!!)
+                State.INLINE_LIST -> descInline(descriptor)
+                else -> descIndex(descriptor, currentKey!!)
             }
 
             if (id != UNKNOWN_NAME) {
-                elementAnnotations = desc.getElementAnnotations(id)
+                elementAnnotations = descriptor.getElementAnnotations(id)
                 return id
             }
 
@@ -327,8 +326,8 @@ class XMLInput internal constructor(private val parent: NodeWrapper,
     override fun decodeChar(): Char = takeStr().single()
     override fun decodeString(): String = takeStr()
 
-    override fun decodeEnum(enumDescription: SerialDescriptor): Int
-        = enumDescription.getElementIndex(takeStr())
+    override fun decodeEnum(enumDescriptor: SerialDescriptor): Int
+        = enumDescriptor.getElementIndex(takeStr())
 
     @Suppress("UNCHECKED_CAST")
     override fun <T> decodeSerializableValue(deserializer: DeserializationStrategy<T>): T {

@@ -41,8 +41,8 @@ data class MetroTimeZone(val olson: String): Parcelable {
     @OptIn(ExperimentalSerializationApi::class)
     @Serializer(forClass = MetroTimeZone::class)
     companion object : KSerializer<MetroTimeZone> {
-        override fun serialize(encoder: Encoder, obj: MetroTimeZone) {
-            encoder.encodeString(obj.olson)
+        override fun serialize(encoder: Encoder, value: MetroTimeZone) {
+            encoder.encodeString(value.olson)
         }
 
         override fun deserialize(decoder: Decoder) = MetroTimeZone(decoder.decodeString())

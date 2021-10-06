@@ -105,6 +105,7 @@ abstract class MultiTypeSerializer<T> : KSerializer<T> {
     abstract fun obj2serializer(obj: T): Pair<String, KSerializer<out T>>
     abstract fun str2serializer(name: String): KSerializer<out T>
 
+    @OptIn(ExperimentalSerializationApi::class)
     @Suppress("UNCHECKED_CAST")
     override fun deserialize(decoder: Decoder): T {
         @Suppress("NAME_SHADOWING")

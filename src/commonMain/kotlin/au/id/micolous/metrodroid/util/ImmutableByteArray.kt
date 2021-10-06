@@ -226,6 +226,7 @@ class ImmutableByteArray private constructor(
         mData[it] xor other[it]
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
     @Serializer(forClass = ImmutableByteArray::class)
     companion object : KSerializer<ImmutableByteArray> {
         operator fun Byte.plus(second: ImmutableByteArray) = ImmutableByteArray(

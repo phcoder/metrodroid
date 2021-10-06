@@ -2,6 +2,7 @@ package au.id.micolous.metrodroid.serializers
 
 import au.id.micolous.metrodroid.card.Card
 import au.id.micolous.metrodroid.util.ByteArrayInput
+import kotlinx.io.core.ExperimentalIoApi
 import kotlinx.io.core.Input
 
 /**
@@ -19,6 +20,7 @@ interface CardImporter {
      */
     fun readCard(stream: Input): Card?
 
+    @OptIn(ExperimentalIoApi::class)
     fun readCard(input: String): Card? {
         return readCard(ByteArrayInput(input.encodeToByteArray()))
     }

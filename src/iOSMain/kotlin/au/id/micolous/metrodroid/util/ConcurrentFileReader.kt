@@ -38,6 +38,7 @@ class ConcurrentFileReader private constructor(
         private val count: Long get() = reader.fileLength
 
 	val available get() = (count - offset)
+	private val available2G get() = if (available < 0x7fffffff) available.toInt() else 0x7fffffff 
 
     	private fun realRead(sz: Int): ByteArray {
             val off = offset
@@ -46,9 +47,9 @@ class ConcurrentFileReader private constructor(
     	}
 
     	override fun readBytes(sz: Int): ByteArray = realRead(
-            min(sz, available))
+            min(sz, available2G))
 
-    	override fun readToString(): String = realRead(available).utf8ToString()
+    	override fun readToString(): String = realRead(available2G).utf8ToString()
     }
 
     fun makeInputStream(): Input = FileInput(this)

@@ -23,7 +23,6 @@ package au.id.micolous.metrodroid.util
 import au.id.micolous.metrodroid.multi.FormattedString
 import au.id.micolous.metrodroid.multi.Parcelable
 import au.id.micolous.metrodroid.multi.Parcelize
-import kotlinx.io.core.Output
 import kotlinx.serialization.*
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
@@ -210,11 +209,11 @@ class ImmutableByteArray private constructor(
     override fun iterator(): Iterator<Byte> = mData.iterator()
 
     fun writeTo(os: Output) {
-        os.writeFully(mData,0, mData.size)
+        os.write(mData)
     }
 
     fun writeTo(os: Output, offset: Int, length: Int) {
-        os.writeFully(mData, offset, length)
+        os.write(mData, offset, length)
     }
 
     fun chunked(size: Int): List<ImmutableByteArray>

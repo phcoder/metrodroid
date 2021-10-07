@@ -1,9 +1,9 @@
 package au.id.micolous.metrodroid.test
 
+import au.id.micolous.metrodroid.util.Input
+import au.id.micolous.metrodroid.util.JavaStreamInput
 import au.id.micolous.metrodroid.util.Preferences
 import kotlinx.coroutines.runBlocking
-import kotlinx.io.core.Input
-import kotlinx.io.streams.asInput
 import java.io.File
 import java.io.InputStream
 import java.util.Locale
@@ -33,7 +33,9 @@ actual abstract class BaseInstrumentedTestPlatform actual constructor() {
     }
 
     actual fun loadAssetSafe(path: String) : Input? =
-        loadAssetStream(path)?.asInput()
+        loadAssetStream(path)?.let {
+            JavaStreamInput(it)
+        }
 
     actual fun listAsset(path: String) : List <String>? {
         val uri = BaseInstrumentedTest::class.java.getResource("/$path")?.toURI() ?: return null

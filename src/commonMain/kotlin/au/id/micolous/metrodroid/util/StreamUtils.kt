@@ -19,15 +19,6 @@
 
 package au.id.micolous.metrodroid.util
 
-import kotlinx.io.core.Input
-import kotlinx.io.charsets.Charsets
-import kotlinx.io.core.String
-import kotlinx.io.core.readBytes
-
-fun Input.readToString() : String = String(
-            bytes = this.readBytes(),
-            charset = Charsets.UTF_8)
-
 fun Input.forEachLine(function: (String) -> Unit) {
     this.readToString().split('\n', '\r').filter { it.isNotEmpty() }.forEach(function)
 }

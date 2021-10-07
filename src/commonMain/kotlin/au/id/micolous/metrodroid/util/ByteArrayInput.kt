@@ -19,23 +19,20 @@
 
 package au.id.micolous.metrodroid.util
 
-import kotlinx.io.core.AbstractInput
-import kotlinx.io.core.ExperimentalIoApi
-import kotlinx.io.core.IoBuffer
 import kotlin.math.min
 
-@ExperimentalIoApi
 class ByteArrayInput (val ba: ByteArray, var offset: Int = 0,
-                      val bufSize: Int = 8192): AbstractInput() {
-    override fun fill(): IoBuffer? {
+                      val bufSize: Int = 8192): Input {
+    val available get() = ba.size - offset
+
+    private fun realRead(sz: Int): ByteArray {
         val off = offset
-        val sz = min(bufSize, ba.size - offset)
         offset += sz
-        return IoBuffer.Pool.borrow().apply {
-            writeFully(ba, off, sz)
-        }
+        return ba.sliceArray(off..(off+sz))
     }
 
-    override fun closeSource() {
-    }
+    override fun readBytes(sz: Int): ByteArray = realRead(
+        min(sz, available))
+
+    override fun readToString(): String = realRead(available).utf8ToString()
 }

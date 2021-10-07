@@ -9,15 +9,10 @@ import au.id.micolous.metrodroid.serializers.CardImporter
 import au.id.micolous.metrodroid.time.TimestampFull
 import au.id.micolous.metrodroid.util.ByteArrayInput
 import au.id.micolous.metrodroid.util.ImmutableByteArray
+import au.id.micolous.metrodroid.util.Input
 import au.id.micolous.metrodroid.util.toImmutable
-import kotlinx.io.core.ExperimentalIoApi
-import kotlinx.io.core.Input
-import kotlinx.io.core.readBytes
-import kotlinx.io.core.readBytesOf
-import kotlinx.io.errors.IOException
 
 class MfcCardImporter : CardImporter {
-    @OptIn(ExperimentalIoApi::class)
     fun readCard(bin: ByteArray): Card = readCard(stream=ByteArrayInput(bin))
     override fun readCard(stream: Input): Card {
         // Read the blocks of the card.
@@ -32,14 +27,14 @@ class MfcCardImporter : CardImporter {
                 else
                     4
 
-            val sectorData = stream.readBytesOf(0, 16 * blockCount)
+            val sectorData = stream.readBytes(16 * blockCount)
             if (sectorData.isEmpty() && sectorNum != 0) {
                  // We got to the end of the file.
                  break
             }
 
             if (sectorData.size != 16 * blockCount) {
-                throw IOException("Incomplete MFC read at sector $sectorNum (${sectorData.size} bytes)")
+                throw Exception("Incomplete MFC read at sector $sectorNum (${sectorData.size} bytes)")
             }
 
             if (sectorNum == 0) {

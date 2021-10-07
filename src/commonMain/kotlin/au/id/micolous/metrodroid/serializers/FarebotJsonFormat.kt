@@ -38,11 +38,8 @@ import au.id.micolous.metrodroid.card.ultralight.UltralightPage
 import au.id.micolous.metrodroid.time.MetroTimeZone
 import au.id.micolous.metrodroid.time.TimestampFull
 import au.id.micolous.metrodroid.util.ImmutableByteArray
-import au.id.micolous.metrodroid.util.decodeBase64
-import au.id.micolous.metrodroid.util.readToString
-import kotlinx.io.core.Input
+import au.id.micolous.metrodroid.util.Input
 import kotlinx.serialization.*
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 
 abstract class CardImporterString : CardImporter {

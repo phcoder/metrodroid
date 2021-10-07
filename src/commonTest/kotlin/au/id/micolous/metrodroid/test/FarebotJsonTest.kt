@@ -21,7 +21,6 @@ package au.id.micolous.metrodroid.test
 import au.id.micolous.metrodroid.multi.Log
 import au.id.micolous.metrodroid.serializers.JsonKotlinFormat
 import au.id.micolous.metrodroid.serializers.AutoJsonFormat
-import au.id.micolous.metrodroid.util.readToString
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

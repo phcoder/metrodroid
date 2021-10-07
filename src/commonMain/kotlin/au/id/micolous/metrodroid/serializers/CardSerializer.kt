@@ -4,7 +4,7 @@ import au.id.micolous.metrodroid.card.Card
 import au.id.micolous.metrodroid.multi.Log
 import au.id.micolous.metrodroid.multi.NativeThrows
 import au.id.micolous.metrodroid.multi.logAndSwiftWrap
-import kotlinx.io.core.Input
+import au.id.micolous.metrodroid.util.Input
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 

@@ -20,10 +20,9 @@
 package au.id.micolous.metrodroid.serializers
 
 import au.id.micolous.metrodroid.card.Card
-import au.id.micolous.metrodroid.util.readToString
+import au.id.micolous.metrodroid.util.Input
+import au.id.micolous.metrodroid.util.Output
 
-import kotlinx.io.core.Input
-import kotlinx.io.core.Output
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.CompositeDecoder.Companion.DECODE_DONE
@@ -43,7 +42,7 @@ internal val JsonElement.jsonObjectOrNull: JsonObject?
 object JsonKotlinFormat : CardExporter, CardImporter {
     override fun writeCard(s: Output, card: Card) {
         val b = makeCardString(card).encodeToByteArray()
-        s.writeFully(b, 0, b.size)
+        s.write(b)
     }
 
     private val jsonOutputFormat = Json {

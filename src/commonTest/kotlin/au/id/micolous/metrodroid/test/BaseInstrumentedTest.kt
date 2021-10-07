@@ -1,7 +1,6 @@
 package au.id.micolous.metrodroid.test
 
-import kotlinx.io.core.Input
-import kotlinx.io.errors.IOException
+import au.id.micolous.metrodroid.util.Input
 import kotlin.test.assertNotNull
 
 expect fun <T> runAsync(block: suspend () -> T)
@@ -17,14 +16,12 @@ expect abstract class BaseInstrumentedTestPlatform() {
 abstract class BaseInstrumentedTest : BaseInstrumentedTestPlatform() {
     fun loadSmallAssetBytesSafe(path: String): ByteArray? {
         val s = loadAssetSafe(path) ?: return null
-        val out = ByteArray(MAX_SMALL_SIZE + 1)
-        val length = s.readAvailable(out, 0, MAX_SMALL_SIZE + 1)
-        if (length > MAX_SMALL_SIZE || length <= 0) {
-            throw IOException("Expected 0 - $MAX_SMALL_SIZE bytes")
+        val out = s.readBytes(MAX_SMALL_SIZE + 1)
+        if (out.size > MAX_SMALL_SIZE) {
+            throw Exception("Expected 0 - $MAX_SMALL_SIZE bytes")
         }
 
-        // Return truncated buffer
-        return out.sliceArray(0 until length)
+        return out
     }
 
     fun loadSmallAssetBytes(path: String): ByteArray {

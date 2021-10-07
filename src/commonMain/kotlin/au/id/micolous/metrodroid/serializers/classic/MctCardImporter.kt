@@ -26,10 +26,8 @@ import au.id.micolous.metrodroid.card.classic.UnauthorizedClassicSector
 import au.id.micolous.metrodroid.serializers.CardImporter
 import au.id.micolous.metrodroid.time.TimestampFull
 import au.id.micolous.metrodroid.util.ImmutableByteArray
+import au.id.micolous.metrodroid.util.Input
 import au.id.micolous.metrodroid.util.forEachLine
-import kotlinx.io.charsets.Charsets
-import kotlinx.io.core.Input
-import kotlinx.io.core.String
 
 /**
  * Class to read files built by MIFARE Classic Tool.

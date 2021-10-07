@@ -20,6 +20,8 @@
 
 package au.id.micolous.metrodroid.util
 
+import java.io.InputStream
+import java.io.OutputStream
 import java.io.PushbackInputStream
 
 operator fun StringBuilder.plusAssign(other: String) {
@@ -52,4 +54,27 @@ fun PushbackInputStream.peek(): Byte {
     val c = this.read()
     this.unread(c)
     return c.toByte()
+}
+
+@OptIn(ExperimentalStdlibApi::class)
+actual fun ByteArray.utf8ToString(): String = this.decodeToString()
+
+class JavaStreamInput (val stream: InputStream): Input {
+    override fun readBytes(sz: Int): ByteArray{
+        val ba = ByteArray(sz)
+        val actual = stream.read(ba)
+        if (actual <= 0)
+            return byteArrayOf()
+        if (actual == sz)
+            return ba
+        return ba.sliceArray(0 until actual)
+    }
+
+    override fun readToString(): String = stream.readBytes().utf8ToString()
+}
+
+class JavaStreamOutput (val stream: OutputStream): Output {
+    override fun write(b: ByteArray, off: Int, sz: Int) {
+        stream.write(b, off, sz)
+    }
 }

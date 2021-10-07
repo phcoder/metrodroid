@@ -22,8 +22,6 @@ import au.id.micolous.metrodroid.key.*
 import au.id.micolous.metrodroid.key.KeyFormat
 import au.id.micolous.metrodroid.util.ImmutableByteArray
 import au.id.micolous.metrodroid.util.toImmutable
-import kotlinx.io.charsets.Charsets
-import kotlinx.io.core.String
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlin.test.*

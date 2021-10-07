@@ -226,7 +226,6 @@ dependencies {
     implementation project(':material-design-icons')
     implementation project(':proto')
 
-    implementation "org.jetbrains.kotlinx:kotlinx-io-jvm:$kotlinio_version"
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinserial_version"
  
     implementation 'com.github.bmelnychuk:atv:1.2.9'

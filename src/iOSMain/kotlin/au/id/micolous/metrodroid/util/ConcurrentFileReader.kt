@@ -20,10 +20,10 @@ package au.id.micolous.metrodroid.util
 
 import au.id.micolous.metrodroid.multi.Log
 
-import kotlinx.io.InputStream
 import kotlinx.cinterop.*
 import platform.posix.*
 import kotlin.comparisons.minOf
+import kotlin.math.min
 
 // Using mmap allows us to avoid having mutexes or to handle seek
 // pointers
@@ -32,49 +32,26 @@ class ConcurrentFileReader private constructor(
     private val mMapped: CPointer<ByteVar>,
     val fileLength: Long) {
 
-    // Class based on kotlinx code
-    class FileInputStream constructor(
-        private val reader: ConcurrentFileReader): InputStream() {
+    class FileInput constructor(
+        private val reader: ConcurrentFileReader): Input {
+        private var offset: Long = 0
+        private val count: Long get() = reader.fileLength
 
-            private var pos: Long = 0
-            private var mark: Long = 0
-            private val count: Long get() = reader.fileLength
+	val available get() = (count - offset)
 
-            override fun available(): Int = (count - pos).toInt()
+    	private fun realRead(sz: Int): ByteArray {
+            val off = offset
+            offset += sz
+	    return reader.read(offset, sz)
+    	}
 
-            override fun read(): Int = if (pos < count) reader.read(pos++, 1)[0].toInt() and 0xFF else -1
+    	override fun readBytes(sz: Int): ByteArray = realRead(
+            min(sz, available))
 
-            override fun read(b: ByteArray, offset: Int, len: Int): Int {
-                // avoid int overflow
-                if (offset < 0 || offset > b.size || len < 0
-                || len > b.size - offset) {
-                    throw IndexOutOfBoundsException()
-                }
-                // Are there any bytes available?
-                if (this.pos >= this.count) {
-                    return -1
-                }
-                if (len == 0) {
-                    return 0
-                }
+    	override fun readToString(): String = realRead(available).utf8ToString()
+    }
 
-                val copylen = minOf(this.count - pos, len.toLong())
-                reader.read(pos, copylen.toInt()).copyInto(b, offset)
-                pos += copylen
-                return copylen.toInt()
-            }
-
-            override fun skip(n: Long): Long {
-                if (n <= 0) {
-                    return 0
-                }
-                val temp = pos
-                pos = if (this.count - pos < n) this.count else (pos + n)
-                return (pos - temp)
-            }
-        }
-
-    fun makeInputStream(): InputStream = FileInputStream(this)
+    fun makeInputStream(): Input = FileInput(this)
 
     fun read(off: Long, len: Int): ByteArray {
         val actualLen = minOf(len, (fileLength - off).toInt())

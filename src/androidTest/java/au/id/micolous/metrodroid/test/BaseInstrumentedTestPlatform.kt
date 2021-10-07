@@ -36,14 +36,13 @@ actual fun <T> runAsync(block: suspend () -> T) {
     runBlocking { block() }
 }
 
-actual fun loadAssetStream(path: String): InputStream? {
+actual fun loadAssetStream(path: String): InputStream? =
     try {
-        return DataInputStream(
+        DataInputStream(
             InstrumentationRegistry.getInstrumentation().context.assets.open(path, AssetManager.ACCESS_RANDOM))
     } catch (e: Exception) {
-        return null
+        null
     }
-}
 
 @RunWith(AndroidJUnit4::class)
 actual abstract class BaseInstrumentedTestPlatform {

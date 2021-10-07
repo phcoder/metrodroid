@@ -123,7 +123,7 @@ class ImmutableByteArray private constructor(
     fun contentEquals(other: ByteArray) = mData.contentEquals(other)
     fun startsWith(other: ByteArray) =
             mData.size >= other.size &&
-            mData.sliceArray(0 until other.size).contentEquals(other)
+            mData.sliceArray(other.indices).contentEquals(other)
     fun startsWith(other: ImmutableByteArray) = startsWith(other.mData)
 
     /**

@@ -194,7 +194,7 @@ abstract class TransitData : Parcelable {
      *
      * @see [trips], [TripObfuscator.obfuscateTrips]
      */
-    @NativeThrows
+    @Throws(Throwable::class)
     fun prepareTrips(safe: Boolean = false): List<Trip>?  = logAndSwiftWrap ("TransitData", "prepareTrips failed") lam@{
         val trips = this.trips ?: return@lam null
 

@@ -24,10 +24,10 @@ import android.content.res.AssetManager
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import au.id.micolous.metrodroid.MetrodroidApplication
+import au.id.micolous.metrodroid.util.Input
+import au.id.micolous.metrodroid.util.JavaStreamInput
 import au.id.micolous.metrodroid.util.Preferences
 import kotlinx.coroutines.runBlocking
-import kotlinx.io.core.Input
-import kotlinx.io.streams.asInput
 import org.junit.runner.RunWith
 import java.io.DataInputStream
 import java.io.InputStream
@@ -93,7 +93,9 @@ actual abstract class BaseInstrumentedTestPlatform {
         setBooleanPref(Preferences.PREF_SHOW_LOCAL_AND_ENGLISH, state)
     }
 
-    actual fun loadAssetSafe(path: String) : Input? = loadAssetStream(path)?.asInput()
+    actual fun loadAssetSafe(path: String) : Input? = loadAssetStream(path)?.let {
+        JavaStreamInput(it)
+    }
 
     actual fun listAsset(path: String) : List <String>? = context.assets.list(path)?.toList()
 

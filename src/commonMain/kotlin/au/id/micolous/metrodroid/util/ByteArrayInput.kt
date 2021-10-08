@@ -21,8 +21,9 @@ package au.id.micolous.metrodroid.util
 
 import kotlin.math.min
 
-class ByteArrayInput (val ba: ByteArray, var offset: Int = 0,
-                      val bufSize: Int = 8192): Input {
+class ByteArrayInput (private val ba: ByteArray): Input {
+    private var offset: Int = 0
+
     val available get() = ba.size - offset
 
     private fun realRead(sz: Int): ByteArray {

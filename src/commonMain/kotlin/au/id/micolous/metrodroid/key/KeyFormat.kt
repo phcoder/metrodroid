@@ -22,7 +22,6 @@ package au.id.micolous.metrodroid.key
 
 import au.id.micolous.metrodroid.multi.Log
 import au.id.micolous.metrodroid.serializers.jsonPrimitiveOrNull
-import au.id.micolous.metrodroid.util.utf8ToString
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 
@@ -93,7 +92,7 @@ enum class KeyFormat {
             // Now see if it actually parses.
             try {
                 val o = CardKeys.jsonParser.parseToJsonElement(
-                    data.utf8ToString()
+                    data.decodeToString()
                 ).jsonObject
                 val type = o[CardKeys.JSON_KEY_TYPE_KEY]?.jsonPrimitiveOrNull?.contentOrNull
                 when(type) {

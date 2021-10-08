@@ -35,5 +35,5 @@ class ByteArrayInput (private val ba: ByteArray): Input {
     override fun readBytes(sz: Int): ByteArray = realRead(
         min(sz, available))
 
-    override fun readToString(): String = realRead(available).utf8ToString()
+    override fun readToString(): String = realRead(available).decodeToString()
 }

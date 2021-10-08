@@ -21,7 +21,7 @@ buildscript {
         android_sdk_version = 31
         android_min_version = 16
         android_gradle_version = '7.0.2'
-        protobuf_version = '3.18.0'
+        protobuf_version = '3.18.1'
         protobuf_gradle_version = '0.8.17'
     }
     repositories {
@@ -226,7 +226,6 @@ dependencies {
     implementation project(':material-design-icons')
     implementation project(':proto')
 
-    implementation "org.jetbrains.kotlinx:kotlinx-io-jvm:$kotlinio_version"
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinserial_version"
  
     implementation 'com.github.bmelnychuk:atv:1.2.9'

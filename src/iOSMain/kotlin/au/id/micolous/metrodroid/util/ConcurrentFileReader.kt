@@ -19,10 +19,8 @@
 package au.id.micolous.metrodroid.util
 
 import au.id.micolous.metrodroid.multi.Log
-
 import kotlinx.cinterop.*
 import platform.posix.*
-import kotlin.comparisons.minOf
 import kotlin.math.min
 
 
@@ -32,28 +30,28 @@ actual fun ByteArray.utf8ToString(): String = this.decodeToString()
 // Using mmap allows us to avoid having mutexes or to handle seek
 // pointers
 class ConcurrentFileReader private constructor(
-    private val mFd: Int,
-    private val mMapped: CPointer<ByteVar>,
-    val fileLength: Long) {
+        private val mFd: Int,
+        private val mMapped: CPointer<ByteVar>,
+        val fileLength: Long) {
 
     class FileInput constructor(
-        private val reader: ConcurrentFileReader): Input {
+            private val reader: ConcurrentFileReader) : Input {
         private var offset: Long = 0
         private val count: Long get() = reader.fileLength
 
-	val available get() = (count - offset)
-	private val available2G get() = if (available < 0x7fffffff) available.toInt() else 0x7fffffff 
+        val available get() = (count - offset)
+        private val available2G get() = if (available < 0x7fffffff) available.toInt() else 0x7fffffff
 
-    	private fun realRead(sz: Int): ByteArray {
+        private fun realRead(sz: Int): ByteArray {
             val off = offset
             offset += sz
-	    return reader.read(offset, sz)
-    	}
+            return reader.read(off, sz)
+        }
 
-    	override fun readBytes(sz: Int): ByteArray = realRead(
-            min(sz, available2G))
+        override fun readBytes(sz: Int): ByteArray = realRead(
+                min(sz, available2G))
 
-    	override fun readToString(): String = realRead(available2G).utf8ToString()
+        override fun readToString(): String = realRead(available2G).utf8ToString()
     }
 
     fun makeInputStream(): Input = FileInput(this)
@@ -69,10 +67,11 @@ class ConcurrentFileReader private constructor(
         private const val TAG = "ConcurrentFileReader"
 
         fun getLength(fd: Int): Long {
-            val ret = lseek (fd, 0, SEEK_END)
-            lseek (fd, 0, SEEK_SET)
+            val ret = lseek(fd, 0, SEEK_END)
+            lseek(fd, 0, SEEK_SET)
             return ret
         }
+
         fun openFile(path: String): ConcurrentFileReader? {
             Log.d(TAG, "Opening $path")
             val fd = open(path, O_RDONLY)

@@ -30,7 +30,6 @@ import au.id.micolous.metrodroid.multi.Log
 import au.id.micolous.metrodroid.time.TimestampFull
 import au.id.micolous.metrodroid.util.ImmutableByteArray
 import au.id.micolous.metrodroid.util.toImmutable
-import au.id.micolous.metrodroid.util.utf8ToString
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -41,7 +40,7 @@ class ClassicReaderTest : BaseInstrumentedTest() {
         override fun listFiles(dir: String): List<String>? = listAsset("$path/keys/$dir")
 
         override fun readFile(fileName: String): String?
-            = loadSmallAssetBytesSafe("$path/keys/$fileName")?.utf8ToString()
+            = loadSmallAssetBytesSafe("$path/keys/$fileName")?.decodeToString()
     }
 
      /*   context, baseDir = "$path/keys"

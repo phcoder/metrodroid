@@ -24,9 +24,6 @@ import platform.posix.*
 import kotlin.math.min
 
 
-@OptIn(ExperimentalStdlibApi::class)
-actual fun ByteArray.utf8ToString(): String = this.decodeToString()
-
 // Using mmap allows us to avoid having mutexes or to handle seek
 // pointers
 class ConcurrentFileReader private constructor(
@@ -51,7 +48,7 @@ class ConcurrentFileReader private constructor(
         override fun readBytes(sz: Int): ByteArray = realRead(
                 min(sz, available2G))
 
-        override fun readToString(): String = realRead(available2G).utf8ToString()
+        override fun readToString(): String = realRead(available2G).decodeToString()
     }
 
     fun makeInputStream(): Input = FileInput(this)

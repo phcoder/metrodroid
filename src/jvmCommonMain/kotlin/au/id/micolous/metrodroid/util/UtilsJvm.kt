@@ -56,9 +56,6 @@ fun PushbackInputStream.peek(): Byte {
     return c.toByte()
 }
 
-@OptIn(ExperimentalStdlibApi::class)
-actual fun ByteArray.utf8ToString(): String = this.decodeToString()
-
 class JavaStreamInput (val stream: InputStream): Input {
     override fun readBytes(sz: Int): ByteArray{
         val ba = ByteArray(sz)
@@ -70,7 +67,7 @@ class JavaStreamInput (val stream: InputStream): Input {
         return ba.sliceArray(0 until actual)
     }
 
-    override fun readToString(): String = stream.readBytes().utf8ToString()
+    override fun readToString(): String = stream.readBytes().decodeToString()
 }
 
 class JavaStreamOutput (val stream: OutputStream): Output {

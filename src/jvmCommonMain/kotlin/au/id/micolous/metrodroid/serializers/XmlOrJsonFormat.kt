@@ -5,7 +5,6 @@ import au.id.micolous.metrodroid.multi.Log
 import au.id.micolous.metrodroid.serializers.classic.MfcCardImporter
 import au.id.micolous.metrodroid.util.JavaStreamInput
 import au.id.micolous.metrodroid.util.peekAndSkipSpace
-import au.id.micolous.metrodroid.util.utf8ToString
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.io.PushbackInputStream
@@ -25,7 +24,7 @@ class XmlOrJsonCardFormat : CardMultiImporter {
         val pb = PushbackInputStream(stream)
         when (pb.peekAndSkipSpace().toChar()) {
             '<' -> return iterateXmlCards(pb) { readCardXML(ByteArrayInputStream(it.encodeToByteArray())) }
-            '[', '{' -> return AutoJsonFormat.readCardList(pb.readBytes().utf8ToString()).iterator()
+            '[', '{' -> return AutoJsonFormat.readCardList(pb.readBytes().decodeToString()).iterator()
             'P' -> return readZip(pb).iterator()
             else -> return null
         }

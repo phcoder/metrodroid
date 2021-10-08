@@ -25,6 +25,10 @@ import platform.posix.*
 import kotlin.comparisons.minOf
 import kotlin.math.min
 
+
+@OptIn(ExperimentalStdlibApi::class)
+actual fun ByteArray.utf8ToString(): String = this.decodeToString()
+
 // Using mmap allows us to avoid having mutexes or to handle seek
 // pointers
 class ConcurrentFileReader private constructor(

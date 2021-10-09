@@ -149,9 +149,9 @@ class SmartCard: CliktCommand(help="Communicates with a card using the PC/SC API
             do {
                 terminal = runBlocking{
                     context.getStatusChange(au.id.micolous.kotlin.pcsc.LONG_TIMEOUT,
-                        listOf(terminal!!.update())).first()
+                        listOf(terminal.update())).first()
                 }
-            } while (!terminal!!.eventState.present)
+            } while (!terminal.eventState.present)
         }
 
         val card = runBlocking { dumpTag(context, terminal.reader) }

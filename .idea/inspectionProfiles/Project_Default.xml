@@ -1,0 +1,28 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="Annotator" enabled="true" level="ERROR" enabled_by_default="false">
+      <scope name="Metrodroid" level="ERROR" enabled="true" />
+    </inspection_tool>
+    <inspection_tool class="JsonStandardCompliance" enabled="true" level="ERROR" enabled_by_default="false">
+      <scope name="Metrodroid" level="ERROR" enabled="true" />
+    </inspection_tool>
+    <inspection_tool class="LossyEncoding" enabled="true" level="WARNING" enabled_by_default="false">
+      <scope name="Metrodroid" level="WARNING" enabled="true" />
+    </inspection_tool>
+    <inspection_tool class="SpellCheckingInspection" enabled="true" level="TYPO" enabled_by_default="false">
+      <scope name="Metrodroid" level="TYPO" enabled="true">
+        <option name="processCode" value="true" />
+        <option name="processLiterals" value="true" />
+        <option name="processComments" value="true" />
+      </scope>
+      <option name="processCode" value="true" />
+      <option name="processLiterals" value="true" />
+      <option name="processComments" value="true" />
+    </inspection_tool>
+    <inspection_tool class="XmlDefaultAttributeValue" enabled="true" level="WARNING" enabled_by_default="false">
+      <scope name="Metrodroid" level="WARNING" enabled="true" />
+    </inspection_tool>
+    <inspection_tool class="XmlHighlighting" enabled="false" level="ERROR" enabled_by_default="false" />
+  </profile>
+</component>

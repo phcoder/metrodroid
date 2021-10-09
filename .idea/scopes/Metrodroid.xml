@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="Metrodroid" pattern="!file:third_party/protobuf//**&amp;&amp;!file:third_party/material-design-icons//**&amp;&amp;!file:src/commonTest/assets//**" />
+</component>

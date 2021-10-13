@@ -115,8 +115,8 @@ data class MetroTimeZone(val olson: String): Parcelable {
 }
 
 data class DHM(val days: Int, val hour: Int, val min: Int) {
-    val yd: YD
-        get() = getYD(days)
+    val ymd: YMD
+        get() = getYMD(days)
 }
 
 internal const val SEC = 1000L
@@ -132,7 +132,7 @@ internal fun makeNow(): TimestampFull =
         tz = MetroTimeZone(TimeZone.currentSystemDefault().id))
 
 internal fun getMillisFromDays(tz: MetroTimeZone, dhm: DHM): Long {
-    val ymd = getYMD(dhm.yd)
+    val ymd = dhm.ymd
     return LocalDateTime(ymd.year, ymd.month.oneBasedIndex, ymd.day, dhm.hour, dhm.min).toInstant(tz.libTimeZone).toEpochMilliseconds()
 }
 
@@ -142,11 +142,7 @@ internal fun getDaysFromMillis(millis: Long, tz: MetroTimeZone): DHM {
     return DHM(ymd.daysSinceEpoch, dt.hour, dt.minute)
 }
 
-data class YD(val year: Int, val dayOfYear: Int) {
-    val daysSinceEpoch: Int = yearToDays(year) + dayOfYear
-}
-
-fun getYD(daysSinceEpoch: Int): YD {
+fun getYD(daysSinceEpoch: Int): Pair<Int, Int> {
     val daysSinceX = daysSinceEpoch + 719162
     // 400 years has 97 bisextile years
     val groups400y = daysSinceX / (400 * 365 + 97)
@@ -158,15 +154,14 @@ fun getYD(daysSinceEpoch: Int): YD {
     val group1y = minOf(remainder4y / 365, 3)
     val remainder1y = remainder4y - group1y * 365
     val y = 1 + groups400y * 400 + groups100y * 100 + groups4y * 4 + group1y
-    return YD(y, remainder1y)
+    return Pair(y, remainder1y)
 }
 
-fun getYMD(yd: YD): YMD {
-    val (y, dy) = yd
-    val correctionD = if (!isBisextile(y) && dy >= 31 + 28) 1 else 0
-    val correctedDays = dy + correctionD
+fun getMD(year: Int, day: Int): Pair<Month, Int> {
+    val correctionD = if (!isBisextile(year) && day >= 31 + 28) 1 else 0
+    val correctedDays = day + correctionD
 
-    val (m, d) = when (correctedDays) {
+    return when (correctedDays) {
         in 0..30 -> Pair(Month.JANUARY, correctedDays + 1)
         in 31..59 -> Pair(Month.FEBRUARY, correctedDays - 30)
         in 60..90 -> Pair(Month.MARCH, correctedDays - 59)
@@ -180,11 +175,13 @@ fun getYMD(yd: YD): YMD {
         in 305..334 -> Pair(Month.NOVEMBER, correctedDays - 304)
         else -> Pair(Month.DECEMBER, correctedDays - 334)
     }
-
-    return YMD(year = y, month = m, day = d)
 }
 
-fun getYMD(daysSinceEpoch: Int): YMD = getYMD(getYD(daysSinceEpoch))
+fun getYMD(daysSinceEpoch: Int): YMD {
+    val (y, dy) = getYD(daysSinceEpoch)
+    val (m, d) = getMD(y, dy)
+    return YMD(year = y, month = m, day = d)
+}
 
 fun yearToDays(year: Int): Int {
     val offYear = year - 1
@@ -236,6 +233,9 @@ data class YMD(val year: Int, val month: Month, val day: Int) {
     constructor(other: YMD): this(other.year, other.month, other.day)
     constructor(year: Int, month: Int, day: Int) : this(normalize(year, month, day))
 
+    val dayOfYear: Int get() = (
+            countDays(year, month.zeroBasedIndex, day)
+                    - countDays(year, 0, 1))
     val daysSinceEpoch: Int get() = countDays(year, month.zeroBasedIndex, day)
 
     companion object {
@@ -256,6 +256,11 @@ data class YMD(val year: Int, val month: Month, val day: Int) {
         }
         private fun normalize(year: Int, month: Int, day: Int): YMD =
             getYMD(countDays(year, month, day))
+
+        fun fromDayOfYear(year: Int, dayOfYear: Int): YMD {
+            val (m, d) = getMD(year, dayOfYear)
+            return YMD(year, m, d)
+        }
     }    
 }
 
@@ -392,9 +397,6 @@ sealed class Timestamp: Parcelable {
     @Transient
     val ymd: YMD
         get () = getYMD(toDaystamp().daysSinceEpoch)
-    @Transient
-    val yd: YD
-        get() = getYD(toDaystamp().daysSinceEpoch)
 
     abstract fun format(): FormattedString
     open operator fun plus(duration: DayDuration): Timestamp = duration.addAny(this)
@@ -459,10 +461,6 @@ data class Daystamp internal constructor(val daysSinceEpoch: Int): Timestamp(), 
 
     constructor(ymd: YMD) : this(
             daysSinceEpoch = ymd.daysSinceEpoch
-    )
-
-    constructor(yd: YD) : this(
-            daysSinceEpoch = yd.daysSinceEpoch
     )
 }
 

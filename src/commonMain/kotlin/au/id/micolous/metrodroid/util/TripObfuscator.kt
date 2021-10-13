@@ -35,8 +35,9 @@ object TripObfuscator {
      */
     private val mCalendarMapping = (0..365).shuffled()
 
-    private fun obfuscateYd(input: YD): YD {
-        var (year, dayOfYear) = input
+    private fun obfuscateYmd(input: YMD): YMD {
+        var year = input.year
+        var dayOfYear = input.dayOfYear
         if (dayOfYear < mCalendarMapping.size) {
             dayOfYear = mCalendarMapping[dayOfYear]
         } else {
@@ -44,14 +45,14 @@ object TripObfuscator {
             Log.w(TAG, "Oops, got out of range day-of-year ($dayOfYear)")
         }
 
-        val today = TimestampFull.now().yd
+        val today = TimestampFull.now().ymd
 
         // Adjust for the time of year
         if (year > today.year || year == today.year && dayOfYear >= today.dayOfYear) {
             year--
         }
 
-        return YD(year, dayOfYear)
+        return YMD.fromDayOfYear(year, dayOfYear)
     }
 
     /**
@@ -72,7 +73,7 @@ object TripObfuscator {
         var off = 0
 
         if (obfuscateDates) {
-            dhm = dhm.copy(days = obfuscateYd(dhm.yd).daysSinceEpoch)
+            dhm = dhm.copy(days = obfuscateYmd(dhm.ymd).daysSinceEpoch)
         }
 
         if (obfuscateTimes) {
@@ -91,7 +92,7 @@ object TripObfuscator {
             return input
         }
 
-        return Daystamp(obfuscateYd(input.yd))
+        return Daystamp(obfuscateYmd(input.ymd))
     }
 
     fun maybeObfuscateTS(input: TimestampFull): TimestampFull =

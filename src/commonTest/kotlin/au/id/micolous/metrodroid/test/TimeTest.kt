@@ -15,8 +15,8 @@ class TimeTest
         assertEquals(1997, ts.getYear())
         assertEquals(Month.JANUARY, ts.getMonth())
         assertEquals(6, ts.day)
-        assertEquals(1, ts.dhm.hour)
-        assertEquals(17, ts.dhm.min)
+        assertEquals(1, ts.hour)
+        assertEquals(17, ts.minute)
         assertEquals(expMillis, ts.timeInMillis)
     }
 

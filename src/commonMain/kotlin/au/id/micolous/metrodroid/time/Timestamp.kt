@@ -132,17 +132,6 @@ internal fun makeNow(): TimestampFull =
         timeInMillis = Clock.System.now().toEpochMilliseconds(),
         tz = MetroTimeZone(TimeZone.currentSystemDefault().id))
 
-internal fun getMillisFromDays(tz: MetroTimeZone, dhm: DHM): Long {
-    val ymd = dhm.ymd
-    return ymd.ld.atTime(dhm.hour, dhm.min).toInstant(tz.libTimeZone).toEpochMilliseconds()
-}
-
-internal fun getDaysFromMillis(millis: Long, tz: MetroTimeZone): DHM {
-    val dt = Instant.fromEpochMilliseconds(millis).toLocalDateTime(tz.libTimeZone)
-    val ymd = YMD(dt.year, dt.monthNumber - 1, dt.dayOfMonth)
-    return DHM(ymd.daysSinceEpoch, dt.hour, dt.minute)
-}
-
 fun getYMD(daysSinceEpoch: Int): YMD {
     return YMD(epochLocalDate + DatePeriod(0, 0, daysSinceEpoch))
 }
@@ -156,8 +145,10 @@ fun yearToDays(year: Int): Int {
     return days - 719162
 }
 
-fun epochDayHourMinToMillis(tz: MetroTimeZone, daysSinceEpoch: Int, hour: Int, min: Int): Long =
-    getMillisFromDays(tz, DHM(daysSinceEpoch, hour, min))
+fun epochDayHourMinToMillis(tz: MetroTimeZone, daysSinceEpoch: Int, hour: Int, min: Int): Long {
+    val ld = (epochLocalDate + DatePeriod(0, 0, daysSinceEpoch))
+    return ld.atTime(hour, min).toInstant(tz.libTimeZone).toEpochMilliseconds()
+}
 
 /**
  * Enum of 0-indexed months in the Gregorian calendar
@@ -386,11 +377,10 @@ data class TimestampFull internal constructor(val timeInMillis: Long,
     override fun getYear(): Int = toDaystamp().getYear()
     override val day: Int get() = ldt.dayOfMonth
 
-    override fun toDaystamp() = Daystamp(dhm.days)
+    override fun toDaystamp() = Daystamp(ldt.date)
 
     val hour: Int get() = ldt.hour
     val minute: Int get() = ldt.minute
-    val dhm get() = getDaysFromMillis(timeInMillis, tz)
     val ldt by lazy {
         Instant.fromEpochMilliseconds(timeInMillis).toLocalDateTime(tz.libTimeZone)
     }

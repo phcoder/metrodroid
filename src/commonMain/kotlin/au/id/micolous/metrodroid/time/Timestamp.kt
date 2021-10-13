@@ -124,8 +124,6 @@ internal const val MIN = 60L * SEC
 internal const val HOUR = 60L * MIN
 internal const val DAY = 24L * HOUR
 
-fun isBisextile(year: Int): Boolean = (year % 4 == 0) && (year % 100 != 0) || (year % 400 == 0)
-
 internal fun makeNow(): TimestampFull =
     TimestampFull(
         timeInMillis = Clock.System.now().toEpochMilliseconds(),
@@ -133,7 +131,7 @@ internal fun makeNow(): TimestampFull =
 
 internal fun getMillisFromDays(tz: MetroTimeZone, dhm: DHM): Long {
     val ymd = dhm.ymd
-    return LocalDateTime(ymd.year, ymd.month.oneBasedIndex, ymd.day, dhm.hour, dhm.min).toInstant(tz.libTimeZone).toEpochMilliseconds()
+    return ymd.ld.atTime(dhm.hour, dhm.min).toInstant(tz.libTimeZone).toEpochMilliseconds()
 }
 
 internal fun getDaysFromMillis(millis: Long, tz: MetroTimeZone): DHM {
@@ -157,10 +155,6 @@ fun yearToDays(year: Int): Int {
 
 fun epochDayHourMinToMillis(tz: MetroTimeZone, daysSinceEpoch: Int, hour: Int, min: Int): Long =
     getMillisFromDays(tz, DHM(daysSinceEpoch, hour, min))
-
-@SharedImmutable
-private val monthToDays = listOf(0, 31, 59, 90, 120, 151, 181,
-        212, 243, 273, 304, 334)
 
 /**
  * Enum of 0-indexed months in the Gregorian calendar
@@ -192,35 +186,19 @@ enum class Month(val zeroBasedIndex: Int) {
  * @property month Month, where January = Month.JANUARY.
  * @property day Day of the month, where the first day of the month = 1.
  */
-data class YMD(val year: Int, val month: Month, val day: Int) {
-    constructor(other: YMD): this(other.year, other.month, other.day)
-    constructor(ld: LocalDate): this(ld.year, Month.zeroBased(ld.month.number - 1), ld.dayOfMonth)
-    constructor(year: Int, month: Int, day: Int) : this(normalize(year, month, day))
+data class YMD(val ld: LocalDate) {
+    constructor(other: YMD): this(other.ld)
+    constructor(year: Int, month: Int, day: Int) : this(
+        LocalDate(1600, kotlinx.datetime.Month.JANUARY, 1)
+                + DatePeriod(year - 1600, month, day - 1))
 
-    val dayOfYear: Int get() = (
-            countDays(year, month.zeroBasedIndex, day)
-                    - countDays(year, 0, 1))
-    val daysSinceEpoch: Int get() = countDays(year, month.zeroBasedIndex, day)
+    val day: Int get() = ld.dayOfMonth
+    val month: Month get() = Month.zeroBased(ld.month.number - 1)
+    val year: Int get() = ld.year
+    val dayOfYear: Int get() = ld.dayOfYear
+    val daysSinceEpoch: Int get() = LocalDate(1970, kotlinx.datetime.Month.JANUARY, 1).daysUntil(ld)
 
     companion object {
-        private fun countDays(year: Int, month: Int, day: Int): Int {
-            val ym = 12 * year + month
-            var y: Int = ym / 12
-            var m: Int = ym % 12
-            // We don't really care for dates before 1 CE
-            // but at least we shouldn't crash on them
-            // This code results in astronomical year numbering
-            // that includes year 0
-            if (m < 0) {
-                m += 12
-                y -= 1
-            }
-            return yearToDays(y) + (day - 1) + monthToDays[m] + (
-                if (isBisextile(y) && m > Month.FEBRUARY.zeroBasedIndex) 1 else 0)
-        }
-        private fun normalize(year: Int, month: Int, day: Int): YMD =
-            getYMD(countDays(year, month, day))
-
         fun fromDayOfYear(year: Int, dayOfYear: Int) =
             YMD(LocalDate(year, kotlinx.datetime.Month.JANUARY, 1) + DatePeriod(0, 0, dayOfYear))
     }    
@@ -230,12 +208,12 @@ internal fun yearToMillis(year: Int) = yearToDays(year) * DAY
 
 fun addYearToDays(from: Int, years: Int): Int {
     val ymd = getYMD(from)
-    return YMD(ymd.year + years, ymd.month, ymd.day).daysSinceEpoch
+    return YMD(ymd.ld + DatePeriod(years, 0, 0)).daysSinceEpoch
 }
 
 fun addMonthToDays(from: Int, months: Int): Int {
     val ymd = getYMD(from)
-    return YMD(ymd.year, ymd.month.zeroBasedIndex + months, ymd.day).daysSinceEpoch
+    return YMD(ymd.ld + DatePeriod(0, months, 0)).daysSinceEpoch
 }
 
 internal fun addYearToMillis(from: Long, tz: MetroTimeZone, years: Int): Long {
@@ -419,7 +397,7 @@ data class Daystamp internal constructor(val daysSinceEpoch: Int): Timestamp(), 
      */
     constructor(year: Int, month: Int, day: Int) : this(YMD(year, month, day))
 
-    constructor(year: Int, month: Month, day: Int) : this(YMD(year, month, day))
+    constructor(year: Int, month: Month, day: Int) : this(YMD(year, month.zeroBasedIndex, day))
 
     constructor(ymd: YMD) : this(
             daysSinceEpoch = ymd.daysSinceEpoch

@@ -165,23 +165,6 @@ enum class Month(val zeroBasedIndex: Int) {
     }
 }
 
-/**
- * Represents a year, month and day in the Gregorian calendar.
- *
- * @property month Month, where January = Month.JANUARY.
- * @property day Day of the month, where the first day of the month = 1.
- */
-data class YMD(val ld: LocalDate) {
-    constructor(year: Int, month: Int, day: Int) : this(
-        LocalDate(1600, kotlinx.datetime.Month.JANUARY, 1)
-                + DatePeriod(year - 1600, month, day - 1))
-
-    val day: Int get() = ld.dayOfMonth
-    val month: Month get() = Month.zeroBased(ld.month.number - 1)
-    val year: Int get() = ld.year
-    val daysSinceEpoch: Int get() = epochLocalDate.daysUntil(ld)
-}
-
 internal fun yearToMillis(year: Int) = yearToDays(year) * DAY
 
 interface Duration {
@@ -341,13 +324,12 @@ data class Daystamp internal constructor(val daysSinceEpoch: Int): Timestamp(), 
      * @param month Month, where January = 0.
      * @param day Day of the month, where the first day of the month = 1.
      */
-    constructor(year: Int, month: Int, day: Int) : this(YMD(year, month, day))
+    constructor(year: Int, month: Int, day: Int) : this(
+        LocalDate(1600, kotlinx.datetime.Month.JANUARY, 1)
+                + DatePeriod(year - 1600, month, day - 1))
 
-    constructor(year: Int, month: Month, day: Int) : this(YMD(year, month.zeroBasedIndex, day))
-
-    constructor(ymd: YMD) : this(
-        daysSinceEpoch = ymd.daysSinceEpoch
-    )
+    constructor(year: Int, month: Month, day: Int) : this(
+        year, month.zeroBasedIndex, day)
 
     constructor(localDate: LocalDate) : this(
         daysSinceEpoch = epochLocalDate.daysUntil(localDate)
@@ -398,8 +380,10 @@ data class TimestampFull internal constructor(val timeInMillis: Long,
 
     constructor(tz : MetroTimeZone, year: Int, month: Int, day: Int, hour: Int,
                 min: Int, sec: Int = 0) : this(
-            timeInMillis = epochDayHourMinToMillis(
-                    tz, YMD(year, month, day).daysSinceEpoch, hour, min) + sec * SEC,
+            timeInMillis = (LocalDate(1600, kotlinx.datetime.Month.JANUARY, 1)
+                        + DatePeriod(year - 1600, month, day - 1))
+                    .atTime(hour, min).toInstant(tz.libTimeZone).toEpochMilliseconds()
+                    + sec * SEC,
             tz = tz
     )
 

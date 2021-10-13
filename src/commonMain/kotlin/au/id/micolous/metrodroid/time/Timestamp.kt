@@ -346,7 +346,7 @@ data class Daystamp internal constructor(val daysSinceEpoch: Int): Timestamp(), 
     val ld get() = (
             epochLocalDate + DatePeriod(0, 0, daysSinceEpoch))
 
-    override fun plus(duration: DatePeriod) = Daystamp(
+    override operator fun plus(duration: DatePeriod) = Daystamp(
         epochLocalDate.daysUntil(ld + duration))
 
     fun adjust() : Daystamp = this

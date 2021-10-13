@@ -127,10 +127,6 @@ internal fun makeNow(): TimestampFull =
         timeInMillis = Clock.System.now().toEpochMilliseconds(),
         tz = MetroTimeZone(TimeZone.currentSystemDefault().id))
 
-fun getYMD(daysSinceEpoch: Int): YMD {
-    return YMD(epochLocalDate + DatePeriod(0, 0, daysSinceEpoch))
-}
-
 fun yearToDays(year: Int): Int {
     val offYear = year - 1
     var days = offYear * 365

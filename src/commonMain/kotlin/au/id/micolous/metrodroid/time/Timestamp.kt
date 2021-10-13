@@ -28,6 +28,7 @@ import au.id.micolous.metrodroid.multi.Parcelize
 import au.id.micolous.metrodroid.util.NumberUtils
 import au.id.micolous.metrodroid.util.Preferences
 import au.id.micolous.metrodroid.util.TripObfuscator
+import kotlinx.datetime.*
 import kotlinx.serialization.*
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
@@ -37,6 +38,12 @@ import kotlin.native.concurrent.SharedImmutable
 @Serializable(with = MetroTimeZone.Companion::class)
 data class MetroTimeZone(val olson: String): Parcelable {
     override fun toString(): String = olson
+
+    val libTimeZone: TimeZone get() = when (this) {
+        UNKNOWN -> UTC.libTimeZone
+        LOCAL -> TimeZone.currentSystemDefault()
+        else -> TimeZone.of(olson)
+    }
 
     @OptIn(ExperimentalSerializationApi::class)
     @Serializer(forClass = MetroTimeZone::class)
@@ -113,7 +120,6 @@ data class DHM(val days: Int, val hour: Int, val min: Int) {
 }
 
 internal expect fun makeNow(): TimestampFull
-internal expect fun getMillisFromDays(tz: MetroTimeZone, dhm: DHM): Long
 internal expect fun getDaysFromMillis(millis: Long, tz: MetroTimeZone): DHM
 internal const val SEC = 1000L
 internal const val MIN = 60L * SEC
@@ -121,6 +127,11 @@ internal const val HOUR = 60L * MIN
 internal const val DAY = 24L * HOUR
 
 fun isBisextile(year: Int): Boolean = (year % 4 == 0) && (year % 100 != 0) || (year % 400 == 0)
+
+internal fun getMillisFromDays(tz: MetroTimeZone, dhm: DHM): Long {
+    val ymd = getYMD(dhm.yd)
+    return LocalDateTime(ymd.year, ymd.month.oneBasedIndex, ymd.day, dhm.hour, dhm.min).toInstant(tz.libTimeZone).toEpochMilliseconds()
+}
 
 data class YD(val year: Int, val dayOfYear: Int) {
     val daysSinceEpoch: Int = yearToDays(year) + dayOfYear

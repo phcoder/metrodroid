@@ -114,11 +114,6 @@ data class MetroTimeZone(val olson: String): Parcelable {
     }
 }
 
-data class DHM(val days: Int, val hour: Int, val min: Int) {
-    val ymd: YMD
-        get() = getYMD(days)
-}
-
 internal const val SEC = 1000L
 internal const val MIN = 60L * SEC
 internal const val HOUR = 60L * MIN
@@ -417,12 +412,6 @@ data class TimestampFull internal constructor(val timeInMillis: Long,
         year = year, month = month.zeroBasedIndex, day = day,
         hour = hour, min = min, sec = sec,
         tz = tz
-    )
-
-    constructor(tz: MetroTimeZone, dhm: DHM) : this(
-            timeInMillis = epochDayHourMinToMillis(
-                    tz, dhm.days, dhm.hour, dhm.min),
-            tz = tz
     )
 
     /**

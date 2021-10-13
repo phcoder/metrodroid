@@ -56,20 +56,6 @@ private fun metroTz2NS(tz: MetroTimeZone): NSTimeZone {
     return UTC
 }
 
-internal actual fun getDaysFromMillis(millis: Long, tz: MetroTimeZone): DHM {
-    val nstz = metroTz2NS(tz)
-    val cal = NSCalendar(calendarIdentifier = NSCalendarIdentifierGregorian)
-    cal.timeZone = nstz
-    val d = NSDate.dateWithTimeIntervalSince1970(millis / 1000.0)
-    val comp = cal.componentsInTimeZone(nstz, fromDate = d)
-    return DHM(days = YMD(
-        year = comp.year.toInt(),
-        month = comp.month.toInt() - 1,
-        day = comp.day.toInt()).daysSinceEpoch,
-        hour = comp.hour.toInt(),
-        min = comp.minute.toInt())
-}
-
 actual object TimestampFormatter {
     // Equivalent of java Calendar to avoid restructuring the code
     data class Calendar(val time: NSDate, val tz: NSTimeZone)

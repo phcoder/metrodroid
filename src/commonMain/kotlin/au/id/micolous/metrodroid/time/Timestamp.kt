@@ -120,7 +120,6 @@ data class DHM(val days: Int, val hour: Int, val min: Int) {
 }
 
 internal expect fun makeNow(): TimestampFull
-internal expect fun getDaysFromMillis(millis: Long, tz: MetroTimeZone): DHM
 internal const val SEC = 1000L
 internal const val MIN = 60L * SEC
 internal const val HOUR = 60L * MIN
@@ -131,6 +130,12 @@ fun isBisextile(year: Int): Boolean = (year % 4 == 0) && (year % 100 != 0) || (y
 internal fun getMillisFromDays(tz: MetroTimeZone, dhm: DHM): Long {
     val ymd = getYMD(dhm.yd)
     return LocalDateTime(ymd.year, ymd.month.oneBasedIndex, ymd.day, dhm.hour, dhm.min).toInstant(tz.libTimeZone).toEpochMilliseconds()
+}
+
+internal fun getDaysFromMillis(millis: Long, tz: MetroTimeZone): DHM {
+    val dt = Instant.fromEpochMilliseconds(millis).toLocalDateTime(tz.libTimeZone)
+    val ymd = YMD(dt.year, dt.monthNumber - 1, dt.dayOfMonth)
+    return DHM(ymd.daysSinceEpoch, dt.hour, dt.minute)
 }
 
 data class YD(val year: Int, val dayOfYear: Int) {

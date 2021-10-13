@@ -315,9 +315,9 @@ sealed class Timestamp: Parcelable {
 @Serializable
 // Only date is known
 data class Daystamp internal constructor(val daysSinceEpoch: Int): Timestamp(), Comparable<Daystamp> {
-    override fun getMonth(): Month = getYMD(daysSinceEpoch).month
+    override fun getMonth(): Month = Month.zeroBased(ld.month.number-1)
 
-    override fun getYear(): Int = getYMD(daysSinceEpoch).year
+    override fun getYear(): Int = ld.year
 
     override fun toDaystamp(): Daystamp = this
 
@@ -352,10 +352,9 @@ data class Daystamp internal constructor(val daysSinceEpoch: Int): Timestamp(), 
      */
     private fun isoDateFormat(): String {
         // ISO_DATE_FORMAT = SimpleDateFormat ("yyyy-MM-dd", Locale.US)
-        val ymd = getYMD(daysSinceEpoch = daysSinceEpoch)
-        return NumberUtils.zeroPad(ymd.year, 4) + "-" +
-                NumberUtils.zeroPad(ymd.month.oneBasedIndex, 2) + "-" +
-                NumberUtils.zeroPad(ymd.day, 2)
+        return NumberUtils.zeroPad(ld.year, 4) + "-" +
+                NumberUtils.zeroPad(ld.month.number, 2) + "-" +
+                NumberUtils.zeroPad(ld.dayOfMonth, 2)
     }
 
     override fun toString(): String = isoDateFormat()
@@ -389,6 +388,9 @@ data class TimestampFull internal constructor(val timeInMillis: Long,
     val dhm get() = getDaysFromMillis(timeInMillis, tz)
     val ldt by lazy {
         Instant.fromEpochMilliseconds(timeInMillis).toLocalDateTime(tz.libTimeZone)
+    }
+    val ldtUtc by lazy {
+        Instant.fromEpochMilliseconds(timeInMillis).toLocalDateTime(MetroTimeZone.UTC.libTimeZone)
     }
 
     override fun compareTo(other: TimestampFull): Int = timeInMillis.compareTo(other = other.timeInMillis)
@@ -434,14 +436,11 @@ data class TimestampFull internal constructor(val timeInMillis: Long,
      */
     fun isoDateTimeFormat(): String {
         //  SimpleDateFormat ("yyyy-MM-dd HH:mm", Locale.US)
-        val daysSinceEpoch = timeInMillis / DAY
-        val timeInDay = (timeInMillis % DAY) / MIN
-        val ymd = getYMD(daysSinceEpoch = daysSinceEpoch.toInt())
-        return NumberUtils.zeroPad(ymd.year, 4) + "-" +
-                NumberUtils.zeroPad(ymd.month.oneBasedIndex, 2) + "-" +
-                NumberUtils.zeroPad(ymd.day, 2) + " " +
-                NumberUtils.zeroPad(timeInDay / 60, 2) + ":" +
-                NumberUtils.zeroPad(timeInDay % 60, 2)
+        return NumberUtils.zeroPad(ldtUtc.year, 4) + "-" +
+                NumberUtils.zeroPad(ldtUtc.month.number, 2) + "-" +
+                NumberUtils.zeroPad(ldtUtc.dayOfMonth, 2) + " " +
+                NumberUtils.zeroPad(ldtUtc.hour, 2) + ":" +
+                NumberUtils.zeroPad(ldtUtc.minute, 2)
     }
 
     /**
@@ -453,16 +452,12 @@ data class TimestampFull internal constructor(val timeInMillis: Long,
      */
     fun isoDateTimeFilenameFormat(): String {
         //  SimpleDateFormat ("yyyyMMdd-HHmmss", Locale.US)
-        val daysSinceEpoch = timeInMillis / DAY
-        val sec = (timeInMillis % MIN) / SEC
-        val timeInDay = (timeInMillis % DAY) / MIN
-        val ymd = getYMD(daysSinceEpoch = daysSinceEpoch.toInt())
-        return NumberUtils.zeroPad(ymd.year, 4) +
-                NumberUtils.zeroPad(ymd.month.oneBasedIndex, 2) +
-                NumberUtils.zeroPad(ymd.day, 2) + "-" +
-                NumberUtils.zeroPad(timeInDay / 60, 2) +
-                NumberUtils.zeroPad(timeInDay % 60, 2) +
-                NumberUtils.zeroPad(sec, 2)
+        return NumberUtils.zeroPad(ldtUtc.year, 4) +
+                NumberUtils.zeroPad(ldtUtc.month.number, 2) +
+                NumberUtils.zeroPad(ldtUtc.dayOfMonth, 2) + "-" +
+                NumberUtils.zeroPad(ldtUtc.hour, 2) +
+                NumberUtils.zeroPad(ldtUtc.minute, 2) +
+                NumberUtils.zeroPad(ldtUtc.second, 2)
     }
 
     override fun toString(): String = isoDateTimeFormat() + "/$tz"

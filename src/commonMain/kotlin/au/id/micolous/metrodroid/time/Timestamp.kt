@@ -214,19 +214,6 @@ fun addYearToDays(from: Int, years: Int): Int {
     return YMD(ymd.ld + DatePeriod(years, 0, 0)).daysSinceEpoch
 }
 
-fun addMonthToDays(from: Int, months: Int): Int {
-    val ymd = getYMD(from)
-    return YMD(ymd.ld + DatePeriod(0, months, 0)).daysSinceEpoch
-}
-
-internal fun addMonthToMillis(from: Long, tz: MetroTimeZone, months: Int): Long {
-    val ms = from % MIN
-    val (days, h, m) = getDaysFromMillis(from, tz)
-    return epochDayHourMinToMillis(tz = tz,
-            daysSinceEpoch = addMonthToDays(from = days, months = months),
-            hour = h, min = m) + ms
-}
-
 internal fun addDay(from: Long, tz: MetroTimeZone, days: Int): Long {
     val ms = from % MIN
     val (d, h, m) = getDaysFromMillis(from, tz)
@@ -262,11 +249,9 @@ class DurationDaysLocal(private val d: Int) : DayDuration {
 }
 
 class DurationMonthsLocal(private val m: Int) : DayDuration {
-    override fun addFull(ts: TimestampFull) = TimestampFull(
-            timeInMillis = addMonthToMillis(ts.timeInMillis, ts.tz, m),
-            tz = ts.tz)
+    override fun addFull(ts: TimestampFull) = ts + DatePeriod(0, m, 0)
 
-    override fun addDays(ts: Daystamp) = Daystamp (daysSinceEpoch = addMonthToDays(ts.daysSinceEpoch, m))
+    override fun addDays(ts: Daystamp) = ts + DatePeriod(0, m, 0)
 }
 
 class DurationYearsLocal(private val y: Int) : DayDuration {

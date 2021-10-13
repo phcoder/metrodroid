@@ -142,21 +142,6 @@ internal fun getDaysFromMillis(millis: Long, tz: MetroTimeZone): DHM {
     return DHM(ymd.daysSinceEpoch, dt.hour, dt.minute)
 }
 
-fun getYD(daysSinceEpoch: Int): Pair<Int, Int> {
-    val daysSinceX = daysSinceEpoch + 719162
-    // 400 years has 97 bisextile years
-    val groups400y = daysSinceX / (400 * 365 + 97)
-    val remainder400y = daysSinceX % (400 * 365 + 97)
-    val groups100y = minOf(remainder400y / (100 * 365 + 24), 3)
-    val remainder100y = remainder400y - (100 * 365 + 24) * groups100y
-    val groups4y = remainder100y / (365 * 4 + 1)
-    val remainder4y = remainder100y % (365 * 4 + 1)
-    val group1y = minOf(remainder4y / 365, 3)
-    val remainder1y = remainder4y - group1y * 365
-    val y = 1 + groups400y * 400 + groups100y * 100 + groups4y * 4 + group1y
-    return Pair(y, remainder1y)
-}
-
 fun getMD(year: Int, day: Int): Pair<Month, Int> {
     val correctionD = if (!isBisextile(year) && day >= 31 + 28) 1 else 0
     val correctedDays = day + correctionD
@@ -178,9 +163,7 @@ fun getMD(year: Int, day: Int): Pair<Month, Int> {
 }
 
 fun getYMD(daysSinceEpoch: Int): YMD {
-    val (y, dy) = getYD(daysSinceEpoch)
-    val (m, d) = getMD(y, dy)
-    return YMD(year = y, month = m, day = d)
+    return YMD(LocalDate(1970, kotlinx.datetime.Month.JANUARY, 1) + DatePeriod(0, 0, daysSinceEpoch))
 }
 
 fun yearToDays(year: Int): Int {
@@ -231,6 +214,7 @@ enum class Month(val zeroBasedIndex: Int) {
  */
 data class YMD(val year: Int, val month: Month, val day: Int) {
     constructor(other: YMD): this(other.year, other.month, other.day)
+    constructor(ld: LocalDate): this(ld.year, Month.zeroBased(ld.month.number - 1), ld.dayOfMonth)
     constructor(year: Int, month: Int, day: Int) : this(normalize(year, month, day))
 
     val dayOfYear: Int get() = (

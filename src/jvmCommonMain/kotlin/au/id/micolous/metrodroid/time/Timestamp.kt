@@ -31,8 +31,3 @@ internal fun makeTimezone(tz: MetroTimeZone) = when (tz) {
     MetroTimeZone.LOCAL -> TimeZone.getDefault()
     else -> TimeZone.getTimeZone(tz.olson)
 }
-
-internal actual fun makeNow(): TimestampFull {
-    val c = GregorianCalendar.getInstance()
-    return TimestampFull(timeInMillis = c.timeInMillis, tz = MetroTimeZone(c.timeZone.id))
-}

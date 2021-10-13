@@ -119,13 +119,17 @@ data class DHM(val days: Int, val hour: Int, val min: Int) {
         get() = getYD(days)
 }
 
-internal expect fun makeNow(): TimestampFull
 internal const val SEC = 1000L
 internal const val MIN = 60L * SEC
 internal const val HOUR = 60L * MIN
 internal const val DAY = 24L * HOUR
 
 fun isBisextile(year: Int): Boolean = (year % 4 == 0) && (year % 100 != 0) || (year % 400 == 0)
+
+internal fun makeNow(): TimestampFull =
+    TimestampFull(
+        timeInMillis = Clock.System.now().toEpochMilliseconds(),
+        tz = MetroTimeZone(TimeZone.currentSystemDefault().id))
 
 internal fun getMillisFromDays(tz: MetroTimeZone, dhm: DHM): Long {
     val ymd = getYMD(dhm.yd)

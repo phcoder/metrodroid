@@ -31,8 +31,6 @@ fun date2Timestamp(date: NSDate): TimestampFull {
     return TimestampFull(timeInMillis = t, tz = MetroTimeZone(tz))
 }
 
-internal actual fun makeNow(): TimestampFull = date2Timestamp(NSDate())
-
 /** Reference to UTC timezone.  */
 @SharedImmutable
 private val UTC : NSTimeZone = NSTimeZone.timeZoneForSecondsFromGMT(0)

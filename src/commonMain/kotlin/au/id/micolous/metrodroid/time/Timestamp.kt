@@ -328,8 +328,10 @@ data class Daystamp internal constructor(val daysSinceEpoch: Int): Timestamp(), 
     override fun format(): FormattedString =
                 TimestampFormatter.longDateFormat(this)
 
-    val ld get() = (
-            epochLocalDate + DatePeriod(0, 0, daysSinceEpoch))
+    @Transient
+    val ld by lazy {
+        epochLocalDate + DatePeriod(0, 0, daysSinceEpoch)
+    }
 
     override operator fun plus(duration: DatePeriod) = Daystamp(
         epochLocalDate.daysUntil(ld + duration))
@@ -386,6 +388,7 @@ data class TimestampFull internal constructor(val timeInMillis: Long,
     override fun toDaystamp() = Daystamp(dhm.days)
 
     val dhm get() = getDaysFromMillis(timeInMillis, tz)
+    @Transient
     val ldt by lazy {
         Instant.fromEpochMilliseconds(timeInMillis).toLocalDateTime(tz.libTimeZone)
     }

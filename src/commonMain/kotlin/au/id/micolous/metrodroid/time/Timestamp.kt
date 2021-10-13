@@ -142,26 +142,6 @@ internal fun getDaysFromMillis(millis: Long, tz: MetroTimeZone): DHM {
     return DHM(ymd.daysSinceEpoch, dt.hour, dt.minute)
 }
 
-fun getMD(year: Int, day: Int): Pair<Month, Int> {
-    val correctionD = if (!isBisextile(year) && day >= 31 + 28) 1 else 0
-    val correctedDays = day + correctionD
-
-    return when (correctedDays) {
-        in 0..30 -> Pair(Month.JANUARY, correctedDays + 1)
-        in 31..59 -> Pair(Month.FEBRUARY, correctedDays - 30)
-        in 60..90 -> Pair(Month.MARCH, correctedDays - 59)
-        in 91..120 -> Pair(Month.APRIL, correctedDays - 90)
-        in 121..151 -> Pair(Month.MAY, correctedDays - 120)
-        in 152..181 -> Pair(Month.JUNE, correctedDays - 151)
-        in 182..212 -> Pair(Month.JULY, correctedDays - 181)
-        in 213..243 -> Pair(Month.AUGUST, correctedDays - 212)
-        in 244..273 -> Pair(Month.SEPTEMBER, correctedDays - 243)
-        in 274..304 -> Pair(Month.OCTOBER, correctedDays - 273)
-        in 305..334 -> Pair(Month.NOVEMBER, correctedDays - 304)
-        else -> Pair(Month.DECEMBER, correctedDays - 334)
-    }
-}
-
 fun getYMD(daysSinceEpoch: Int): YMD {
     return YMD(LocalDate(1970, kotlinx.datetime.Month.JANUARY, 1) + DatePeriod(0, 0, daysSinceEpoch))
 }
@@ -241,10 +221,8 @@ data class YMD(val year: Int, val month: Month, val day: Int) {
         private fun normalize(year: Int, month: Int, day: Int): YMD =
             getYMD(countDays(year, month, day))
 
-        fun fromDayOfYear(year: Int, dayOfYear: Int): YMD {
-            val (m, d) = getMD(year, dayOfYear)
-            return YMD(year, m, d)
-        }
+        fun fromDayOfYear(year: Int, dayOfYear: Int) =
+            YMD(LocalDate(year, kotlinx.datetime.Month.JANUARY, 1) + DatePeriod(0, 0, dayOfYear))
     }    
 }
 

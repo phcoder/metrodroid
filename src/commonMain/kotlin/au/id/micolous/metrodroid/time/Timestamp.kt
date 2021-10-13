@@ -190,7 +190,6 @@ enum class Month(val zeroBasedIndex: Int) {
  * @property day Day of the month, where the first day of the month = 1.
  */
 data class YMD(val ld: LocalDate) {
-    constructor(other: YMD): this(other.ld)
     constructor(year: Int, month: Int, day: Int) : this(
         LocalDate(1600, kotlinx.datetime.Month.JANUARY, 1)
                 + DatePeriod(year - 1600, month, day - 1))

@@ -124,6 +124,9 @@ internal const val MIN = 60L * SEC
 internal const val HOUR = 60L * MIN
 internal const val DAY = 24L * HOUR
 
+@SharedImmutable
+val epochLocalDate = LocalDate(1970, kotlinx.datetime.Month.JANUARY, 1)
+
 internal fun makeNow(): TimestampFull =
     TimestampFull(
         timeInMillis = Clock.System.now().toEpochMilliseconds(),
@@ -141,7 +144,7 @@ internal fun getDaysFromMillis(millis: Long, tz: MetroTimeZone): DHM {
 }
 
 fun getYMD(daysSinceEpoch: Int): YMD {
-    return YMD(LocalDate(1970, kotlinx.datetime.Month.JANUARY, 1) + DatePeriod(0, 0, daysSinceEpoch))
+    return YMD(epochLocalDate + DatePeriod(0, 0, daysSinceEpoch))
 }
 
 fun yearToDays(year: Int): Int {
@@ -196,7 +199,7 @@ data class YMD(val ld: LocalDate) {
     val month: Month get() = Month.zeroBased(ld.month.number - 1)
     val year: Int get() = ld.year
     val dayOfYear: Int get() = ld.dayOfYear
-    val daysSinceEpoch: Int get() = LocalDate(1970, kotlinx.datetime.Month.JANUARY, 1).daysUntil(ld)
+    val daysSinceEpoch: Int get() = epochLocalDate.daysUntil(ld)
 
     companion object {
         fun fromDayOfYear(year: Int, dayOfYear: Int) =
@@ -214,14 +217,6 @@ fun addYearToDays(from: Int, years: Int): Int {
 fun addMonthToDays(from: Int, months: Int): Int {
     val ymd = getYMD(from)
     return YMD(ymd.ld + DatePeriod(0, months, 0)).daysSinceEpoch
-}
-
-internal fun addYearToMillis(from: Long, tz: MetroTimeZone, years: Int): Long {
-    val ms = from % MIN
-    val (days, h, m) = getDaysFromMillis(from, tz)
-    return epochDayHourMinToMillis(tz = tz,
-            daysSinceEpoch = addYearToDays(from = days, years = years),
-            hour = h, min = m) + ms
 }
 
 internal fun addMonthToMillis(from: Long, tz: MetroTimeZone, months: Int): Long {
@@ -275,9 +270,7 @@ class DurationMonthsLocal(private val m: Int) : DayDuration {
 }
 
 class DurationYearsLocal(private val y: Int) : DayDuration {
-    override fun addFull(ts: TimestampFull) = TimestampFull(
-            timeInMillis = addYearToMillis(ts.timeInMillis, ts.tz, y),
-            tz = ts.tz)
+    override fun addFull(ts: TimestampFull) = ts + DatePeriod(y, 0, 0)
 
     override fun addDays(ts: Daystamp) = Daystamp (daysSinceEpoch = addYearToDays(ts.daysSinceEpoch, y))
 }
@@ -342,6 +335,7 @@ sealed class Timestamp: Parcelable {
     open operator fun plus(duration: DayDuration): Timestamp = duration.addAny(this)
     abstract fun toDaystamp(): Daystamp
     abstract fun obfuscateDelta(delta: Long): Timestamp
+    abstract fun plus(duration: DatePeriod): Timestamp
 
     fun isSameDay(other: Timestamp): Boolean = this.toDaystamp() == other.toDaystamp()
     abstract fun getMonth(): Month
@@ -364,6 +358,13 @@ data class Daystamp internal constructor(val daysSinceEpoch: Int): Timestamp(), 
 
     override fun format(): FormattedString =
                 TimestampFormatter.longDateFormat(this)
+
+    val ld get() = (
+            epochLocalDate + DatePeriod(0, 0, daysSinceEpoch))
+
+    override fun plus(duration: DatePeriod) = Daystamp(
+        epochLocalDate.daysUntil(ld + duration))
+
     fun adjust() : Daystamp = this
     fun promote(tz: MetroTimeZone, hour: Int, min: Int): TimestampFull = TimestampFull(
             tz = tz, timeInMillis = epochDayHourMinToMillis(tz, daysSinceEpoch, hour, min))
@@ -416,6 +417,9 @@ data class TimestampFull internal constructor(val timeInMillis: Long,
     override fun toDaystamp() = Daystamp(dhm.days)
 
     val dhm get() = getDaysFromMillis(timeInMillis, tz)
+    val ldt by lazy {
+        Instant.fromEpochMilliseconds(timeInMillis).toLocalDateTime(tz.libTimeZone)
+    }
 
     override fun compareTo(other: TimestampFull): Int = timeInMillis.compareTo(other = other.timeInMillis)
     fun adjust() : TimestampFull =
@@ -424,6 +428,11 @@ data class TimestampFull internal constructor(val timeInMillis: Long,
 
     operator fun plus(duration: Duration) = duration.addFull(this)
     override operator fun plus(duration: DayDuration) = duration.addFull(this)
+    override operator fun plus(duration: DatePeriod) = TimestampFull(
+        (ldt.date + duration).atTime(ldt.hour, ldt.minute,
+            ldt.second, ldt.nanosecond).toInstant(tz.libTimeZone).toEpochMilliseconds(),
+        tz)
+
     override fun format(): FormattedString = TimestampFormatter.dateTimeFormat(this)
 
     constructor(tz : MetroTimeZone, year: Int, month: Int, day: Int, hour: Int,

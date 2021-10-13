@@ -35,8 +35,8 @@ object TripObfuscator {
      */
     private val mCalendarMapping = (0..365).shuffled()
 
-    private fun obfuscateYmd(input: YMD): YMD {
-        var year = input.year
+    private fun obfuscateDaystamp(input: Daystamp): Daystamp {
+        var year = input.getYear()
         var dayOfYear = input.dayOfYear
         if (dayOfYear < mCalendarMapping.size) {
             dayOfYear = mCalendarMapping[dayOfYear]
@@ -45,14 +45,14 @@ object TripObfuscator {
             Log.w(TAG, "Oops, got out of range day-of-year ($dayOfYear)")
         }
 
-        val today = TimestampFull.now().ymd
+        val today = TimestampFull.now().toDaystamp()
 
         // Adjust for the time of year
-        if (year > today.year || year == today.year && dayOfYear >= today.dayOfYear) {
+        if (year > today.getYear() || year == today.getYear() && dayOfYear >= today.dayOfYear) {
             year--
         }
 
-        return YMD.fromDayOfYear(year, dayOfYear)
+        return Daystamp.fromDayOfYear(year, dayOfYear)
     }
 
     /**
@@ -69,22 +69,19 @@ object TripObfuscator {
         }
 
         // Clone the input before we start messing with it.
-        var dhm = input.dhm
-        var off = 0
+        val daystamp = maybeObfuscateTSDay(
+            input.toDaystamp(), obfuscateDates)
 
-        if (obfuscateDates) {
-            dhm = dhm.copy(days = obfuscateYmd(dhm.ymd).daysSinceEpoch)
-        }
+        if (!obfuscateTimes)
+            return daystamp.promote(input.tz, input.hour, input.minute)
 
-        if (obfuscateTimes) {
-            // Reduce resolution of timestamps to 5 minutes.
-            dhm = dhm.copy(min = (dhm.min + 2) / 5 * 5)
+        // Reduce resolution of timestamps to 5 minutes.
+        val minute = (input.minute + 2) / 5 * 5
 
-            // Add a deviation of up to 350 minutes (5.5 hours) earlier or later.
-            off = Random.nextInt(700) - 350
-        }
+        // Add a deviation of up to 350 minutes (5.5 hours) earlier or later.
+        val off = Random.nextInt(700) - 350
 
-        return TimestampFull(input.tz, dhm) + Duration.mins(off)
+        return daystamp.promote(input.tz, input.hour, minute) + Duration.mins(off)
     }
 
     private fun maybeObfuscateTSDay(input: Daystamp, obfuscateDates: Boolean): Daystamp {
@@ -92,7 +89,7 @@ object TripObfuscator {
             return input
         }
 
-        return Daystamp(obfuscateYmd(input.ymd))
+        return obfuscateDaystamp(input)
     }
 
     fun maybeObfuscateTS(input: TimestampFull): TimestampFull =

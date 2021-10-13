@@ -197,13 +197,7 @@ data class YMD(val ld: LocalDate) {
     val day: Int get() = ld.dayOfMonth
     val month: Month get() = Month.zeroBased(ld.month.number - 1)
     val year: Int get() = ld.year
-    val dayOfYear: Int get() = ld.dayOfYear
     val daysSinceEpoch: Int get() = epochLocalDate.daysUntil(ld)
-
-    companion object {
-        fun fromDayOfYear(year: Int, dayOfYear: Int) =
-            YMD(LocalDate(year, kotlinx.datetime.Month.JANUARY, 1) + DatePeriod(0, 0, dayOfYear))
-    }    
 }
 
 internal fun yearToMillis(year: Int) = yearToDays(year) * DAY
@@ -296,10 +290,7 @@ class EpochLocal internal constructor(private val baseDays: Int,
 }
 
 sealed class Timestamp: Parcelable {
-    @Transient
-    val ymd: YMD
-        get () = getYMD(toDaystamp().daysSinceEpoch)
-
+    abstract val localDate: LocalDate
     abstract fun format(): FormattedString
     open operator fun plus(duration: DayDuration): Timestamp = duration.addAny(this)
     abstract fun toDaystamp(): Daystamp
@@ -309,15 +300,17 @@ sealed class Timestamp: Parcelable {
     fun isSameDay(other: Timestamp): Boolean = this.toDaystamp() == other.toDaystamp()
     abstract fun getMonth(): Month
     abstract fun getYear(): Int
+    abstract val day: Int
 }
 
 @Parcelize
 @Serializable
 // Only date is known
 data class Daystamp internal constructor(val daysSinceEpoch: Int): Timestamp(), Comparable<Daystamp> {
-    override fun getMonth(): Month = Month.zeroBased(ld.month.number-1)
+    override fun getMonth(): Month = Month.zeroBased(localDate.month.number-1)
 
-    override fun getYear(): Int = ld.year
+    override fun getYear(): Int = localDate.year
+    override val day: Int get() = localDate.dayOfMonth
 
     override fun toDaystamp(): Daystamp = this
 
@@ -328,12 +321,13 @@ data class Daystamp internal constructor(val daysSinceEpoch: Int): Timestamp(), 
     override fun format(): FormattedString =
                 TimestampFormatter.longDateFormat(this)
 
-    val ld by lazy {
+    val dayOfYear: Int get() = localDate.dayOfYear
+    override val localDate by lazy {
         epochLocalDate + DatePeriod(0, 0, daysSinceEpoch)
     }
 
     override operator fun plus(duration: DatePeriod) = Daystamp(
-        epochLocalDate.daysUntil(ld + duration))
+        localDate + duration)
 
     fun adjust() : Daystamp = this
     fun promote(tz: MetroTimeZone, hour: Int, min: Int): TimestampFull = TimestampFull(
@@ -352,9 +346,9 @@ data class Daystamp internal constructor(val daysSinceEpoch: Int): Timestamp(), 
      */
     private fun isoDateFormat(): String {
         // ISO_DATE_FORMAT = SimpleDateFormat ("yyyy-MM-dd", Locale.US)
-        return NumberUtils.zeroPad(ld.year, 4) + "-" +
-                NumberUtils.zeroPad(ld.month.number, 2) + "-" +
-                NumberUtils.zeroPad(ld.dayOfMonth, 2)
+        return NumberUtils.zeroPad(localDate.year, 4) + "-" +
+                NumberUtils.zeroPad(localDate.month.number, 2) + "-" +
+                NumberUtils.zeroPad(localDate.dayOfMonth, 2)
     }
 
     override fun toString(): String = isoDateFormat()
@@ -370,8 +364,17 @@ data class Daystamp internal constructor(val daysSinceEpoch: Int): Timestamp(), 
     constructor(year: Int, month: Month, day: Int) : this(YMD(year, month.zeroBasedIndex, day))
 
     constructor(ymd: YMD) : this(
-            daysSinceEpoch = ymd.daysSinceEpoch
+        daysSinceEpoch = ymd.daysSinceEpoch
     )
+
+    constructor(localDate: LocalDate) : this(
+        daysSinceEpoch = epochLocalDate.daysUntil(localDate)
+    )
+
+    companion object {
+        fun fromDayOfYear(year: Int, dayOfYear: Int) =
+            Daystamp(LocalDate(year, kotlinx.datetime.Month.JANUARY, 1) + DatePeriod(0, 0, dayOfYear))
+    }
 }
 
 @Parcelize
@@ -380,17 +383,22 @@ data class Daystamp internal constructor(val daysSinceEpoch: Int): Timestamp(), 
 data class TimestampFull internal constructor(val timeInMillis: Long,
                                             val tz: MetroTimeZone): Parcelable, Comparable<TimestampFull>, Timestamp() {
     override fun getMonth(): Month = toDaystamp().getMonth()
-
     override fun getYear(): Int = toDaystamp().getYear()
+    override val day: Int get() = ldt.dayOfMonth
 
     override fun toDaystamp() = Daystamp(dhm.days)
 
+    val hour: Int get() = ldt.hour
+    val minute: Int get() = ldt.minute
     val dhm get() = getDaysFromMillis(timeInMillis, tz)
     val ldt by lazy {
         Instant.fromEpochMilliseconds(timeInMillis).toLocalDateTime(tz.libTimeZone)
     }
     val ldtUtc by lazy {
         Instant.fromEpochMilliseconds(timeInMillis).toLocalDateTime(MetroTimeZone.UTC.libTimeZone)
+    }
+    override val localDate by lazy {
+        ldt.date
     }
 
     override fun compareTo(other: TimestampFull): Int = timeInMillis.compareTo(other = other.timeInMillis)

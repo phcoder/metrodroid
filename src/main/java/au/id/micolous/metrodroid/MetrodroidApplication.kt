@@ -30,7 +30,7 @@ import au.id.micolous.farebot.R
 import au.id.micolous.metrodroid.util.Preferences
 import au.id.micolous.metrodroid.util.Utils
 
-class MetrodroidApplication : Application() {
+class MetrodroidApplication : MultiDexApplication() {
     init {
         instance = this
     }

@@ -225,8 +225,12 @@ class EpochLocal internal constructor(private val baseDays: Int,
 }
 
 sealed class Timestamp: Parcelable {
-    val monthNumberOneBased: Int get() = getMonth().number
-    val monthNumberZeroBased: Int get() = getMonth().number - 1
+    val monthNumberOneBased: Int get() = month.number
+    val monthNumberZeroBased: Int get() = month.number - 1
+    val month: Month get() = localDate.month
+    val year: Int get() = localDate.year
+    val day: Int get() = localDate.dayOfMonth
+
     abstract val localDate: LocalDate
     abstract fun format(): FormattedString
     open operator fun plus(duration: DayDuration): Timestamp = duration.addAny(this)
@@ -235,20 +239,12 @@ sealed class Timestamp: Parcelable {
     abstract fun plus(duration: DatePeriod): Timestamp
 
     fun isSameDay(other: Timestamp): Boolean = this.toDaystamp() == other.toDaystamp()
-    abstract fun getMonth(): Month
-    abstract fun getYear(): Int
-    abstract val day: Int
 }
 
 @Parcelize
 @Serializable
 // Only date is known
 data class Daystamp internal constructor(val daysSinceEpoch: Int): Timestamp(), Comparable<Daystamp> {
-    override fun getMonth(): Month = localDate.month
-
-    override fun getYear(): Int = localDate.year
-    override val day: Int get() = localDate.dayOfMonth
-
     override fun toDaystamp(): Daystamp = this
 
     override fun compareTo(other: Daystamp): Int = daysSinceEpoch.compareTo(other.daysSinceEpoch)
@@ -318,10 +314,6 @@ data class Daystamp internal constructor(val daysSinceEpoch: Int): Timestamp(), 
 // Precision or minutes and higher
 data class TimestampFull internal constructor(val timeInMillis: Long,
                                             val tz: MetroTimeZone): Parcelable, Comparable<TimestampFull>, Timestamp() {
-    override fun getMonth(): Month = toDaystamp().getMonth()
-    override fun getYear(): Int = toDaystamp().getYear()
-    override val day: Int get() = ldt.dayOfMonth
-
     override fun toDaystamp() = Daystamp(ldt.date)
 
     val hour: Int get() = ldt.hour

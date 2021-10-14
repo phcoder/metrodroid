@@ -36,7 +36,7 @@ object TripObfuscator {
     private val mCalendarMapping = (0..365).shuffled()
 
     private fun obfuscateDaystamp(input: Daystamp): Daystamp {
-        var year = input.getYear()
+        var year = input.year
         var dayOfYear = input.dayOfYear
         if (dayOfYear < mCalendarMapping.size) {
             dayOfYear = mCalendarMapping[dayOfYear]
@@ -48,7 +48,7 @@ object TripObfuscator {
         val today = TimestampFull.now().toDaystamp()
 
         // Adjust for the time of year
-        if (year > today.getYear() || year == today.getYear() && dayOfYear >= today.dayOfYear) {
+        if (year > today.year || year == today.year && dayOfYear >= today.dayOfYear) {
             year--
         }
 

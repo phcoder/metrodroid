@@ -54,8 +54,8 @@ class DateTest {
             val expectedY = g.get(Calendar.YEAR)
             val expectedM = g.get(Calendar.MONTH)
             val expectedD = g.get(Calendar.DAY_OF_MONTH)
-            assertEquals (ymd.getYear(), expectedY,
-                "Wrong year for days $days: ${ymd.getYear()} vs $expectedY")
+            assertEquals (ymd.year, expectedY,
+                "Wrong year for days $days: ${ymd.year} vs $expectedY")
             assertEquals (ymd.monthNumberZeroBased, expectedM,
                 "Wrong month for days $days: ${ymd.monthNumberZeroBased} vs $expectedM")
             assertEquals (ymd.day, expectedD,

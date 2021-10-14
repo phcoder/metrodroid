@@ -229,7 +229,7 @@ class LeapTransitData private constructor(private val mIssueDate: Timestamp,
             val checkDigit = (NumberUtils.calculateLuhn(serial.toString()) + 6) % 10
             return (NumberUtils.formatNumber(serial.toLong(), " ", 5, 4) + checkDigit + " "
                     + NumberUtils.zeroPad(initDate.monthNumberOneBased, 2) +
-                    NumberUtils.zeroPad((initDate.getYear()) % 100, 2))
+                    NumberUtils.zeroPad((initDate.year) % 100, 2))
         }
 
         val FACTORY: DesfireCardTransitFactory = object : DesfireCardTransitFactory {

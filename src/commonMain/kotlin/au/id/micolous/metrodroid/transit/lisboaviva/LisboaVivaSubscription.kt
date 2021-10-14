@@ -57,7 +57,7 @@ class LisboaVivaSubscription (override val parsed: En1545Parsed,
                 0x109 -> return vf + Duration.daysLocal(period - 1)
                 0x10a -> {
                     // It's calendar months. Hence this trickery
-                    val ymStart = vf.getYear() * 12 + vf.monthNumberZeroBased
+                    val ymStart = vf.year * 12 + vf.monthNumberZeroBased
                     val ymEnd = ymStart + period
                     val dEnd = Daystamp(year = ymEnd / 12, month = ymEnd % 12, day = 1)
                     return dEnd + Duration.daysLocal(-1)

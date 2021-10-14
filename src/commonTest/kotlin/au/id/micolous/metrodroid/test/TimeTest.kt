@@ -12,8 +12,8 @@ class TimeTest
     private fun transitEpochDay(tz: MetroTimeZone, expMillis: Long) {
         val epoch = Epoch.local(1997, tz)
         val ts = epoch.dayMinute(5, 77)
-        assertEquals(1997, ts.getYear())
-        assertEquals(Month.JANUARY, ts.getMonth())
+        assertEquals(1997, ts.year)
+        assertEquals(Month.JANUARY, ts.month)
         assertEquals(6, ts.day)
         assertEquals(1, ts.hour)
         assertEquals(17, ts.minute)

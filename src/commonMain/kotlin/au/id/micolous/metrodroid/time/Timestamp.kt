@@ -122,11 +122,6 @@ internal const val DAY = 24L * HOUR
 @SharedImmutable
 val epochLocalDate = LocalDate(1970, kotlinx.datetime.Month.JANUARY, 1)
 
-internal fun makeNow(): TimestampFull =
-    TimestampFull(
-        timeInMillis = Clock.System.now().toEpochMilliseconds(),
-        tz = MetroTimeZone(TimeZone.currentSystemDefault().id))
-
 fun yearToDays(year: Int): Int {
     val offYear = year - 1
     var days = offYear * 365
@@ -432,6 +427,8 @@ data class TimestampFull internal constructor(val timeInMillis: Long,
     override fun obfuscateDelta(delta: Long) = TimestampFull(timeInMillis = timeInMillis + delta, tz = tz)
 
     companion object {
-        fun now() = makeNow()
+        fun now() = TimestampFull(
+                timeInMillis = Clock.System.now().toEpochMilliseconds(),
+                tz = MetroTimeZone(TimeZone.currentSystemDefault().id))
     }
 }

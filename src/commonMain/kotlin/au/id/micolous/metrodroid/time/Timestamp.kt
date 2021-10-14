@@ -120,7 +120,7 @@ internal const val HOUR = 60L * MIN
 internal const val DAY = 24L * HOUR
 
 @SharedImmutable
-val epochLocalDate = LocalDate(1970, kotlinx.datetime.Month.JANUARY, 1)
+val epochLocalDate = LocalDate(1970, Month.JANUARY, 1)
 
 fun yearToDays(year: Int): Int {
     val offYear = year - 1
@@ -131,36 +131,9 @@ fun yearToDays(year: Int): Int {
     return days - 719162
 }
 
-fun epochDayHourMinToMillis(tz: MetroTimeZone, daysSinceEpoch: Int, hour: Int, min: Int): Long {
-    val ld = (epochLocalDate + DatePeriod(0, 0, daysSinceEpoch))
-    return ld.atTime(hour, min).toInstant(tz.libTimeZone).toEpochMilliseconds()
-}
-
-/**
- * Enum of 0-indexed months in the Gregorian calendar
- */
-enum class Month(val zeroBasedIndex: Int) {
-    JANUARY(0),
-    FEBRUARY(1),
-    MARCH(2),
-    APRIL(3),
-    MAY(4),
-    JUNE(5),
-    JULY(6),
-    AUGUST(7),
-    SEPTEMBER(8),
-    OCTOBER(9),
-    NOVEMBER(10),
-    DECEMBER(11);
-
-    val oneBasedIndex: Int get() = zeroBasedIndex + 1
-
-    companion object {
-        fun zeroBased(idx: Int): Month = values()[idx]
-    }
-}
-
 internal fun yearToMillis(year: Int) = yearToDays(year) * DAY
+
+typealias Month = kotlinx.datetime.Month
 
 interface Duration {
     fun addFull (ts: TimestampFull): TimestampFull
@@ -242,14 +215,18 @@ class EpochLocal internal constructor(private val baseDays: Int,
             Daystamp(daysSinceEpoch = baseDays + d)
 
     fun dayMinute(d: Int, m: Int) = TimestampFull(
-            timeInMillis = epochDayHourMinToMillis(tz, baseDays + d,
-                    m / 60, m % 60), tz = tz)
+        tz = tz,
+        localDateTime = (epochLocalDate + DatePeriod(0, 0, baseDays + d))
+            .atTime(m / 60, m % 60))
     fun daySecond(d: Int, s: Int) = TimestampFull(
-            timeInMillis = epochDayHourMinToMillis(tz, baseDays + d,
-                    s / 3600, (s / 60) % 60) + (s%60) * SEC, tz = tz)
+        tz = tz,
+        localDateTime = (epochLocalDate + DatePeriod(0, 0, baseDays + d))
+            .atTime(s / 3600, (s / 60) % 60, s%60))
 }
 
 sealed class Timestamp: Parcelable {
+    val monthNumberOneBased: Int get() = getMonth().number
+    val monthNumberZeroBased: Int get() = getMonth().number - 1
     abstract val localDate: LocalDate
     abstract fun format(): FormattedString
     open operator fun plus(duration: DayDuration): Timestamp = duration.addAny(this)
@@ -267,7 +244,7 @@ sealed class Timestamp: Parcelable {
 @Serializable
 // Only date is known
 data class Daystamp internal constructor(val daysSinceEpoch: Int): Timestamp(), Comparable<Daystamp> {
-    override fun getMonth(): Month = Month.zeroBased(localDate.month.number-1)
+    override fun getMonth(): Month = localDate.month
 
     override fun getYear(): Int = localDate.year
     override val day: Int get() = localDate.dayOfMonth
@@ -291,7 +268,7 @@ data class Daystamp internal constructor(val daysSinceEpoch: Int): Timestamp(), 
 
     fun adjust() : Daystamp = this
     fun promote(tz: MetroTimeZone, hour: Int, min: Int): TimestampFull = TimestampFull(
-            tz = tz, timeInMillis = epochDayHourMinToMillis(tz, daysSinceEpoch, hour, min))
+            tz = tz, localDateTime = localDate.atTime(hour, min))
 
     /**
      * Formats a GregorianCalendar in to ISO8601 date format in local time (ie: without any timezone
@@ -320,11 +297,11 @@ data class Daystamp internal constructor(val daysSinceEpoch: Int): Timestamp(), 
      * @param day Day of the month, where the first day of the month = 1.
      */
     constructor(year: Int, month: Int, day: Int) : this(
-        LocalDate(1600, kotlinx.datetime.Month.JANUARY, 1)
+        LocalDate(1600, Month.JANUARY, 1)
                 + DatePeriod(year - 1600, month, day - 1))
 
     constructor(year: Int, month: Month, day: Int) : this(
-        year, month.zeroBasedIndex, day)
+        year, month.number - 1, day)
 
     constructor(localDate: LocalDate) : this(
         daysSinceEpoch = epochLocalDate.daysUntil(localDate)
@@ -332,7 +309,7 @@ data class Daystamp internal constructor(val daysSinceEpoch: Int): Timestamp(), 
 
     companion object {
         fun fromDayOfYear(year: Int, dayOfYear: Int) =
-            Daystamp(LocalDate(year, kotlinx.datetime.Month.JANUARY, 1) + DatePeriod(0, 0, dayOfYear))
+            Daystamp(LocalDate(year, Month.JANUARY, 1) + DatePeriod(0, 0, dayOfYear))
     }
 }
 
@@ -367,26 +344,30 @@ data class TimestampFull internal constructor(val timeInMillis: Long,
     operator fun plus(duration: Duration) = duration.addFull(this)
     override operator fun plus(duration: DayDuration) = duration.addFull(this)
     override operator fun plus(duration: DatePeriod) = TimestampFull(
-        (ldt.date + duration).atTime(ldt.hour, ldt.minute,
-            ldt.second, ldt.nanosecond).toInstant(tz.libTimeZone).toEpochMilliseconds(),
-        tz)
+        tz = tz,
+        localDateTime = (ldt.date + duration).atTime(ldt.hour, ldt.minute,
+            ldt.second, ldt.nanosecond))
 
     override fun format(): FormattedString = TimestampFormatter.dateTimeFormat(this)
 
     constructor(tz : MetroTimeZone, year: Int, month: Int, day: Int, hour: Int,
                 min: Int, sec: Int = 0) : this(
-            timeInMillis = (LocalDate(1600, kotlinx.datetime.Month.JANUARY, 1)
+            tz = tz,
+            localDateTime = (LocalDate(1600, Month.JANUARY, 1)
                         + DatePeriod(year - 1600, month, day - 1))
-                    .atTime(hour, min).toInstant(tz.libTimeZone).toEpochMilliseconds()
-                    + sec * SEC,
-            tz = tz
+                    .atTime(hour, min, sec)
     )
 
     constructor(tz : MetroTimeZone, year: Int, month: Month, day: Int, hour: Int,
                 min: Int, sec: Int = 0) : this(
-        year = year, month = month.zeroBasedIndex, day = day,
+        year = year, month = month.number - 1, day = day,
         hour = hour, min = min, sec = sec,
         tz = tz
+    )
+
+    constructor(tz: MetroTimeZone, localDateTime: LocalDateTime) : this(
+        tz = tz,
+        timeInMillis = localDateTime.toInstant(tz.libTimeZone).toEpochMilliseconds()
     )
 
     /**

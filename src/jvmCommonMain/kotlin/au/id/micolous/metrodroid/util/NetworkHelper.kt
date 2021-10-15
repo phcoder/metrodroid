@@ -5,7 +5,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.util.*
 
-fun sendPostRequest(urlString: String, request: ByteArray): ByteArray? {
+actual fun sendPostRequest(urlString: String, request: ByteArray): ByteArray? {
     try {
         val url = URL(urlString)
         val conn = url.openConnection() as HttpURLConnection
@@ -27,4 +27,4 @@ fun sendPostRequest(urlString: String, request: ByteArray): ByteArray? {
     }
 }
 
-fun randomUUID() = UUID.randomUUID().toString()
+actual fun randomUUID() = UUID.randomUUID().toString()

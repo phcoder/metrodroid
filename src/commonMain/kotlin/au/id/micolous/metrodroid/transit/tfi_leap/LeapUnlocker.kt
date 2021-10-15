@@ -263,5 +263,5 @@ class LeapUnlocker private constructor(private val mApplicationId: Int,
     }
 }
 
-internal actual fun createUnlockerDispatch(appId: Int, manufData: ImmutableByteArray): DesfireUnlocker? =
+internal fun createUnlockerDispatch(appId: Int, manufData: ImmutableByteArray): DesfireUnlocker? =
         LeapUnlocker.createUnlocker(appId, manufData)

@@ -19,13 +19,7 @@
 
 package au.id.micolous.metrodroid.transit.tfi_leap
 
-import au.id.micolous.metrodroid.util.Preferences
 import com.google.protobuf.ByteString
-
-import java.io.IOException
-import java.net.HttpURLConnection
-import java.net.URL
-import java.util.UUID
 
 import au.id.micolous.metrodroid.card.desfire.DesfireAuthLog
 import au.id.micolous.metrodroid.card.desfire.DesfireUnlocker
@@ -33,8 +27,7 @@ import au.id.micolous.metrodroid.card.desfire.DesfireProtocol
 import au.id.micolous.metrodroid.card.desfire.files.RawDesfireFile
 import au.id.micolous.metrodroid.multi.Log
 import au.id.micolous.metrodroid.proto.Leap
-import au.id.micolous.metrodroid.util.ImmutableByteArray
-import au.id.micolous.metrodroid.util.toImmutable
+import au.id.micolous.metrodroid.util.*
 
 class LeapUnlocker private constructor(private val mApplicationId: Int,
                                        private val mManufData: ImmutableByteArray) : DesfireUnlocker {
@@ -82,7 +75,7 @@ class LeapUnlocker private constructor(private val mApplicationId: Int,
 
         val request1 = Leap.LeapMessage.newBuilder()
                 .setApplicationId(mApplicationId)
-                .setSessionId(UUID.randomUUID().toString())
+                .setSessionId(randomUUID())
                 .addCmds(Leap.LeapDesFireCommand.newBuilder()
                         .setQuery(ByteString.copyFrom(byteArrayOf(DesfireProtocol.GET_MANUFACTURING_DATA)))
                         .setResponse(ze.concat(ByteString.copyFrom(mManufData.dataCopy)))
@@ -204,25 +197,11 @@ class LeapUnlocker private constructor(private val mApplicationId: Int,
         private const val LEAP_API_URL = "https://tnfc.leapcard.ie//ReadCard/V0"
         private const val TAG = "LeapUnlocker"
 
-        @Throws(IOException::class)
         private fun communicate(input: Leap.LeapMessage): Leap.LeapMessage {
-            val url = URL(LEAP_API_URL)
-            val conn = url.openConnection() as HttpURLConnection
-            conn.requestMethod = "POST"
-            conn.doInput = true
-            conn.doOutput = true
-            conn.setRequestProperty("Content-Type", null)
-
-            conn.setRequestProperty("User-Agent", "Metrodroid/" + Preferences.metrodroidVersion)
-            val send = conn.outputStream
-
             Log.d(TAG, "Sending $input")
-            input.writeTo(send)
-            val recv = conn.inputStream
-            val reply = Leap.LeapMessage.parseFrom(recv)
-
+            val reply = Leap.LeapMessage.parseFrom(
+                sendPostRequest(LEAP_API_URL, input.toByteArray()))
             Log.d(TAG, "Received $reply")
-            conn.disconnect()
             return reply
         }
 

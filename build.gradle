@@ -226,7 +226,8 @@ dependencies {
     implementation project(':proto')
 
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinserial_version"
- 
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-protobuf:$kotlinserial_version"
+
     implementation 'com.github.bmelnychuk:atv:1.2.9'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.1'
     implementation 'com.google.android.material:material:1.4.0'
@@ -296,6 +297,7 @@ kotlin {
         commonMain {
             dependencies {
                 api "org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinserial_version"
+                api "org.jetbrains.kotlinx:kotlinx-serialization-protobuf:$kotlinserial_version"
                 api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.3.0")
             }

@@ -19,23 +19,59 @@
 
 package au.id.micolous.metrodroid.transit.tfi_leap
 
-import com.google.protobuf.ByteString
-
 import au.id.micolous.metrodroid.card.desfire.DesfireAuthLog
 import au.id.micolous.metrodroid.card.desfire.DesfireUnlocker
 import au.id.micolous.metrodroid.card.desfire.DesfireProtocol
 import au.id.micolous.metrodroid.card.desfire.files.RawDesfireFile
 import au.id.micolous.metrodroid.multi.Log
-import au.id.micolous.metrodroid.proto.Leap
 import au.id.micolous.metrodroid.util.*
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.protobuf.ProtoBuf
+import kotlinx.serialization.protobuf.ProtoNumber
+import kotlinx.serialization.Serializable
+
+@Serializable
+@OptIn(ExperimentalSerializationApi::class)
+class LeapDesFireCommand constructor(
+    @ProtoNumber(1)
+    val query: ByteArray? = null,
+    @ProtoNumber(2)
+    val response: ByteArray? = null,
+    @ProtoNumber(3)
+    val expectedResponse: ByteArray? = null,
+)
+
+@Serializable
+@OptIn(ExperimentalSerializationApi::class)
+data class LeapKeyValue(
+    @ProtoNumber(3)
+    val key: String? = null,
+    @ProtoNumber(4)
+    val value: String? = null
+)
+
+@Serializable
+@OptIn(ExperimentalSerializationApi::class)
+data class LeapMessage(
+    @ProtoNumber(1)
+    val applicationId: Int? = null,
+    @ProtoNumber(2)
+    val sessionId: String? = null,
+    @ProtoNumber(3)
+    val stage: String? = null,
+    @ProtoNumber(4)
+    val cmds: List<LeapDesFireCommand> = emptyList(),
+    @ProtoNumber(5)
+    val keyValues: List<LeapKeyValue> = emptyList()
+)
 
 class LeapUnlocker private constructor(private val mApplicationId: Int,
                                        private val mManufData: ImmutableByteArray) : DesfireUnlocker {
     private var mUnlocked1f: Boolean = false
     private var mUnlockedRest: Boolean = false
     private var mSessionId: String? = null
-    private var mConfirmation: ByteArray? = null
-    private var mReply1: Leap.LeapMessage? = null
+    private var mConfirmation: ImmutableByteArray? = null
+    private var mReply1: LeapMessage? = null
 
     override fun getOrder(desfireTag: DesfireProtocol, fileIds: IntArray): IntArray {
         var skip = 0
@@ -62,50 +98,52 @@ class LeapUnlocker private constructor(private val mApplicationId: Int,
         if (mUnlocked1f)
             return null
 
-        val ze = ByteString.copyFrom(byteArrayOf(0))
-        val af = ByteString.copyFrom(byteArrayOf(DesfireProtocol.ADDITIONAL_FRAME))
+        val ze = ImmutableByteArray.of(0)
+        val af = ImmutableByteArray.of(DesfireProtocol.ADDITIONAL_FRAME)
 
         val file1Desc = getFile(files, 1)
         if (file1Desc == null) {
             Log.e(TAG, "File 1 not found")
             return null
         }
-        val file1 = file1Desc.data?.dataCopy
+        val file1 = file1Desc.data ?: ImmutableByteArray.empty()
         val challenge = desfireTag.sendUnlock(0x0d)
 
-        val request1 = Leap.LeapMessage.newBuilder()
-                .setApplicationId(mApplicationId)
-                .setSessionId(randomUUID())
-                .addCmds(Leap.LeapDesFireCommand.newBuilder()
-                        .setQuery(ByteString.copyFrom(byteArrayOf(DesfireProtocol.GET_MANUFACTURING_DATA)))
-                        .setResponse(ze.concat(ByteString.copyFrom(mManufData.dataCopy)))
+        val request1 = LeapMessage(
+            applicationId = mApplicationId,
+            sessionId = randomUUID(),
+            cmds = listOf(
+                LeapDesFireCommand(
+                    query = byteArrayOf(DesfireProtocol.GET_MANUFACTURING_DATA),
+                    response = (ze + mManufData).dataCopy
+                ),
+                LeapDesFireCommand(
+                    query = byteArrayOf(DesfireProtocol.READ_DATA, 1, 0, 0, 0, 0x20, 0, 0),
+                    response = (ze + file1).dataCopy
+                ),
+                LeapDesFireCommand(
+                    query = byteArrayOf(DesfireProtocol.UNLOCK, 0x0d),
+                    response = (af + challenge).dataCopy
                 )
-                .addCmds(Leap.LeapDesFireCommand.newBuilder()
-                        .setQuery(ByteString.copyFrom(byteArrayOf(DesfireProtocol.READ_DATA, 1, 0, 0, 0, 0x20, 0, 0)))
-                        .setResponse(ze.concat(ByteString.copyFrom(file1)))
-                )
-                .addCmds(Leap.LeapDesFireCommand.newBuilder()
-                        .setQuery(ByteString.copyFrom(byteArrayOf(DesfireProtocol.UNLOCK, 0x0d)))
-                        .setResponse(af.concat(ByteString.copyFrom(challenge.dataCopy)))
-                )
-                .addKeyvalues(
-                        Leap.LeapKeyValue.newBuilder()
-                                .setKey("ASYNC_READS")
-                                .setValue("true"))
-                .build()
+            ),
+            keyValues = listOf(
+                LeapKeyValue(key = "ASYNC_READS", value = "true")
+            )
+        )
         val reply1 = communicate(request1)
-        if (reply1.getCmds(0).query.byteAt(0) != DesfireProtocol.ADDITIONAL_FRAME) {
+        if (reply1.cmds[0].query?.get(0) != DesfireProtocol.ADDITIONAL_FRAME) {
             Log.e(TAG, "CMD0 is not AF")
             return null
         }
-        val response = reply1.getCmds(0).query.substring(1).toByteArray()
-        mConfirmation = desfireTag.sendAdditionalFrame(response.toImmutable()).dataCopy
+        val response = reply1.cmds[0].query?.toImmutable()?.let {
+            it.copyOfRange(1, it.lastIndex)
+        }
+        mConfirmation = desfireTag.sendAdditionalFrame(response!!)
 
         mSessionId = reply1.sessionId
         mReply1 = reply1
         mUnlocked1f = true
-        return DesfireAuthLog(0x0d, challenge,
-                response.toImmutable(), mConfirmation!!.toImmutable())
+        return DesfireAuthLog(0x0d, challenge, response, mConfirmation!!)
     }
 
     @Throws(Exception::class)
@@ -113,59 +151,62 @@ class LeapUnlocker private constructor(private val mApplicationId: Int,
         if (mUnlockedRest)
             return null
 
-        val ze = ByteString.copyFrom(byteArrayOf(0))
-        val af = ByteString.copyFrom(byteArrayOf(DesfireProtocol.ADDITIONAL_FRAME))
+        val ze = ImmutableByteArray.of(0)
+        val af = ImmutableByteArray.of(DesfireProtocol.ADDITIONAL_FRAME)
         val file1fDesc = getFile(files, 0x1f)
         if (file1fDesc == null) {
             Log.e(TAG, "File 1f not found")
             return null
         }
 
-        val file1f = file1fDesc.data?.dataCopy
+        val file1f = file1fDesc.data ?: ImmutableByteArray.empty()
 
-        val request2 = Leap.LeapMessage.newBuilder()
-                .setApplicationId(mApplicationId)
-                .setSessionId(mSessionId)
-                .setStage("UPDATE_AUTHENTICATE_1")
-                .addCmds(Leap.LeapDesFireCommand.newBuilder()
-                        .setQuery(mReply1!!.getCmds(0).query)
-                        .setResponse(ze.concat(ByteString.copyFrom(mConfirmation!!)))
-                        .setExpectedResponse(ByteString.copyFrom(byteArrayOf(0)))
+        val request2 = LeapMessage(
+            applicationId = mApplicationId,
+            sessionId = mSessionId,
+            stage = "UPDATE_AUTHENTICATE_1",
+            cmds = listOf(
+                LeapDesFireCommand(
+                    query = mReply1!!.cmds[0].query,
+                    response = (ze + mConfirmation!!).dataCopy,
+                    expectedResponse = byteArrayOf(0)
+                ),
+                LeapDesFireCommand(
+                    query = mReply1!!.cmds[1].query,
+                    response = (ze + file1f).dataCopy
                 )
-                .addCmds(Leap.LeapDesFireCommand.newBuilder()
-                        .setQuery(mReply1!!.getCmds(1).query)
-                        .setResponse(ze.concat(ByteString.copyFrom(file1f)))
-                )
-                .addKeyvalues(
-                        Leap.LeapKeyValue.newBuilder()
-                                .setKey("ASYNC_READS")
-                                .setValue("true"))
-                .build()
+            ),
+            keyValues = listOf(
+                LeapKeyValue(key="ASYNC_READS", value="true")
+            )
+        )
         val reply2 = communicate(request2)
         val challenge = desfireTag.sendUnlock(0x03)
-        val request3 = Leap.LeapMessage.newBuilder()
-                .setApplicationId(mApplicationId)
-                .setSessionId(mSessionId)
-                .setStage("UPDATE_AUTHENTICATE_2")
-                .addCmds(Leap.LeapDesFireCommand.newBuilder()
-                        .setQuery(reply2.getCmds(0).query)
-                        .setResponse(af.concat(ByteString.copyFrom(challenge.dataCopy)))
-                        .setExpectedResponse(af)
-                )
-                .addKeyvalues(
-                        Leap.LeapKeyValue.newBuilder()
-                                .setKey("ASYNC_READS")
-                                .setValue("true"))
-                .build()
+        val request3 = LeapMessage(
+            applicationId = mApplicationId,
+            sessionId = mSessionId,
+            stage = "UPDATE_AUTHENTICATE_2",
+            cmds = listOf(
+                LeapDesFireCommand(
+                    query = reply2.cmds[0].query,
+                    response = (af + challenge).dataCopy,
+                    expectedResponse = af.dataCopy)
+            ),
+            keyValues = listOf(
+                LeapKeyValue(key="ASYNC_READS", value="true")
+            )
+        )
         val reply3 = communicate(request3)
-        if (reply3.getCmds(0).query.byteAt(0) != DesfireProtocol.ADDITIONAL_FRAME) {
+        if (reply3.cmds[0].query?.get(0) != DesfireProtocol.ADDITIONAL_FRAME) {
             Log.e(TAG, "CMD0 is not AF")
             return null
         }
-        val response = reply3.getCmds(0).query.substring(1).toByteArray()
-        val confirm = desfireTag.sendAdditionalFrame(response.toImmutable())
+        val response = reply3.cmds[0].query?.let {
+            it.copyOfRange(1, it.lastIndex)
+        }!!.toImmutable()
+        val confirm = desfireTag.sendAdditionalFrame(response)
         mUnlockedRest = true
-        return DesfireAuthLog(0x03, challenge, response.toImmutable(), confirm)
+        return DesfireAuthLog(0x03, challenge, response, confirm)
     }
 
     override suspend fun unlock(desfireTag: DesfireProtocol,
@@ -197,12 +238,15 @@ class LeapUnlocker private constructor(private val mApplicationId: Int,
         private const val LEAP_API_URL = "https://tnfc.leapcard.ie//ReadCard/V0"
         private const val TAG = "LeapUnlocker"
 
-        private fun communicate(input: Leap.LeapMessage): Leap.LeapMessage {
-            Log.d(TAG, "Sending $input")
-            val reply = Leap.LeapMessage.parseFrom(
-                sendPostRequest(LEAP_API_URL, input.toByteArray()))
-            Log.d(TAG, "Received $reply")
-            return reply
+        @OptIn(ExperimentalSerializationApi::class)
+        private fun communicate(inputPb: LeapMessage): LeapMessage {
+            Log.d(TAG, "Sending $inputPb")
+            val input = ProtoBuf.encodeToByteArray(LeapMessage.serializer(), inputPb)
+            val reply = sendPostRequest(LEAP_API_URL, input)
+            val replyPb = ProtoBuf.decodeFromByteArray(LeapMessage.serializer(),
+                reply!!)
+            Log.d(TAG, "Received $replyPb")
+            return replyPb
         }
 
         fun createUnlocker(applicationId: Int, manufData: ImmutableByteArray): LeapUnlocker? {

@@ -7,6 +7,7 @@ import au.id.micolous.metrodroid.multi.R
 import au.id.micolous.metrodroid.time.*
 import au.id.micolous.metrodroid.transit.*
 import au.id.micolous.metrodroid.ui.ListItem
+import au.id.micolous.metrodroid.ui.ListItemInterface
 import au.id.micolous.metrodroid.util.NumberUtils
 import au.id.micolous.metrodroid.util.ImmutableByteArray
 import au.id.micolous.metrodroid.util.hexString
@@ -76,7 +77,7 @@ abstract class TroikaBlock private constructor(private val mSerial: Long,
         get() = TroikaSubscription(mExpiryDate, mValidityStart, mValidityEnd,
                 mRemainingTrips, mValidityLengthMinutes, mTicketType)
 
-    open val info: List<ListItem>?
+    open val info: List<ListItemInterface>?
         get() = null
 
     open val debug: List<ListItem>

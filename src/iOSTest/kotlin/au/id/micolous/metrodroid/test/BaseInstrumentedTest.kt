@@ -9,8 +9,9 @@ import platform.Foundation.NSLocale
 
 actual abstract class BaseInstrumentedTestPlatform actual constructor() {
     actual fun setLocale(languageTag: String) {
-        Preferences.languageOverrideForTest.value = languageTag.substringBefore("-")
+        Preferences.languageOverrideForTest.value = languageTag.substringBefore('-')
         Preferences.localeOverrideForTest.value = NSLocale(localeIdentifier = languageTag)
+        Preferences.regionOverrideForTest.value = languageTag.substringAfter('-')
     }
 
     actual fun loadAssetSafe(path: String): Input? =

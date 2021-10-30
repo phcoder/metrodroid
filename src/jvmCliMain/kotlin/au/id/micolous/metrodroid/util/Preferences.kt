@@ -22,7 +22,7 @@ actual object Preferences {
     actual var showRawStationIds = true
     actual val language: String
         get() = languageActual
-    actual val region: String?
+    actual val regions: Set<String>?
         get() = null
     actual var showBothLocalAndEnglish = true
     actual val rawLevel: TransitData.RawLevel

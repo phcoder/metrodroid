@@ -19,24 +19,48 @@
 
 package au.id.micolous.metrodroid.transit
 
-import au.id.micolous.metrodroid.multi.FormattedString
-import au.id.micolous.metrodroid.multi.Parcelable
-import au.id.micolous.metrodroid.multi.Parcelize
-import au.id.micolous.metrodroid.multi.VisibleForTesting
+import au.id.micolous.metrodroid.multi.*
 import au.id.micolous.metrodroid.util.ISO4217
 import au.id.micolous.metrodroid.util.NumberUtils
 import au.id.micolous.metrodroid.util.Preferences
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlin.random.Random
 
 internal expect fun formatCurrency(value: Int, divisor: Int, currencyCode: String, isBalance: Boolean): FormattedString
 
+@Serializable
+@SerialName("currency")
+sealed class TransitCurrencyBase : TransitBalance(), Parcelable {
+    abstract fun formatCurrencyString(isBalance: Boolean): FormattedString
+    abstract fun obfuscate(): TransitCurrencyBase
+}
+
+@Serializable
+@SerialName("resource")
 @Parcelize
-open class TransitCurrency (
+class TransitCurrencyResource (
+    @Serializable(with = StringResourceSerializer::class)
+    private val mDesc: StringResource)
+    : TransitCurrencyBase () {
+    override fun formatCurrencyString(isBalance: Boolean) =
+        Localizer.localizeFormatted(mDesc)
+    override fun obfuscate(): TransitCurrencyResource = this
+    override val balance: TransitCurrency
+        get() = TransitCurrency.USD(0)
+}
+
+@Parcelize
+@Serializable
+@SerialName("iso")
+class TransitCurrency (
+        @SerialName("value")
         private val mCurrency: Int,
         /**
          * 3 character currency code (eg: AUD) per ISO 4217.
          */
         @VisibleForTesting
+        @SerialName("currencyCode")
         val mCurrencyCode: String,
         /**
          * Value to divide by to get that currency's value in non-fractional parts.
@@ -46,8 +70,9 @@ open class TransitCurrency (
          * If the currency has no fractional part (eg: IDR, JPY, KRW), then the divisor should be 1,
          */
         @VisibleForTesting
+        @SerialName("divisor")
         val mDivisor: Int
-): TransitBalance, Parcelable {
+): TransitCurrencyBase(), Parcelable {
 
     override val balance: TransitCurrency
         get() = this
@@ -146,7 +171,7 @@ open class TransitCurrency (
         return TransitCurrency(cur, mCurrencyCode, mDivisor)
     }
 
-    fun obfuscate(): TransitCurrency {
+    override fun obfuscate(): TransitCurrency {
         return obfuscate(Random.nextInt(100) - 50,
                 Random.nextDouble() * 0.4 + 0.8)
     }
@@ -162,7 +187,7 @@ open class TransitCurrency (
      * special way)
      * @return Formatted currency string
      */
-    open fun formatCurrencyString(isBalance: Boolean): FormattedString {
+    override fun formatCurrencyString(isBalance: Boolean): FormattedString {
         return formatCurrency(mCurrency, mDivisor, mCurrencyCode, isBalance)
     }
 

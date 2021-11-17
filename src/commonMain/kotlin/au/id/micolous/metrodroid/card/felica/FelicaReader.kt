@@ -194,7 +194,7 @@ object FelicaReader {
                             excludedCodes.joinToString(limit = 50, transform = Int::hexString))
 
                     for (serviceCode in excludedCodes) {
-                        services[serviceCode] = FelicaService(skipped = true)
+                        services[serviceCode] = FelicaService.skipped()
                     }
 
                     serviceCodes = serviceCodes.filter { it and 0x01 == 1 }.toIntArray()

@@ -159,5 +159,6 @@ actual class FormattedStringBuilder actual constructor() {
     actual fun build(): FormattedString = FormattedString(ssb)
 
     private val ssb: SpannableStringBuilder = SpannableStringBuilder()
-
+    actual fun isEmpty(): Boolean = ssb.isEmpty()
+    actual fun isNotEmpty(): Boolean = ssb.isNotEmpty()
 }

@@ -8,7 +8,7 @@ import au.id.micolous.metrodroid.multi.Parcelize
 import au.id.micolous.metrodroid.multi.R
 import au.id.micolous.metrodroid.transit.emv.EmvData
 import au.id.micolous.metrodroid.transit.serialonly.SerialOnlyTransitData
-import au.id.micolous.metrodroid.ui.ListItem
+import au.id.micolous.metrodroid.ui.ListItemInterface
 import au.id.micolous.metrodroid.util.ImmutableByteArray
 import au.id.micolous.metrodroid.util.Preferences
 
@@ -19,7 +19,7 @@ data class PiletTransitData (
     override val cardName: String,
     override val reason: Reason
 ): SerialOnlyTransitData() {
-    override val extraInfo: List<ListItem>
+    override val extraInfo: List<ListItemInterface>
         get() = ISO7816TLV.infoBerTLVs(listOf(berTlv),
             TAG_MAP,
             hideThings = Preferences.obfuscateTripDates || Preferences.hideCardNumbers,

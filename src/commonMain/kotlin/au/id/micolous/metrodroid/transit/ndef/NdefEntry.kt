@@ -12,7 +12,7 @@ sealed class NdefEntry: Parcelable {
     abstract val id: ImmutableByteArray?
     abstract val payload: ImmutableByteArray
 
-    private val headInfo: List<ListItem>
+    private val headInfo: List<ListItemInterface>
         get() = listOfNotNull(
             HeaderListItem(name),
             id?.let {
@@ -22,9 +22,9 @@ sealed class NdefEntry: Parcelable {
                 )
             }
         )
-    val info: List<ListItem>
+    val info: List<ListItemInterface>
         get() = headInfo + payloadInfo
-    open val payloadInfo: List<ListItem>
+    open val payloadInfo: List<ListItemInterface>
         get() = listOf(
             ListItem(
                 Localizer.localizeFormatted(R.string.ndef_type),
@@ -71,7 +71,7 @@ data class NdefUri(
     override val name: StringResource
         get() = R.string.ndef_uri_record
 
-    override val payloadInfo: List<ListItem>
+    override val payloadInfo: List<ListItemInterface>
         get() = listOf(
             UriListItem(
                 R.string.ndef_uri,
@@ -138,7 +138,7 @@ data class NdefText(
     override val name: StringResource
         get() = R.string.ndef_text_record
 
-    override val payloadInfo: List<ListItem>
+    override val payloadInfo: List<ListItemInterface>
         get() = listOf(
             ListItem(
                 Localizer.localizeFormatted(R.string.ndef_text_encoding),
@@ -303,7 +303,7 @@ data class NdefWifi(
         }
 
     companion object {
-        private fun infoWfaExtension(payload: ImmutableByteArray): List<ListItem> =
+        private fun infoWfaExtension(payload: ImmutableByteArray): List<ListItemInterface> =
             entriesFromBytes(payload.drop(3), 1).map {
                 when (it.type) {
                     0 -> ListItem(
@@ -429,7 +429,7 @@ data class NdefAndroidPkg(
     override val name: StringResource
         get() = R.string.ndef_android_pkg_record
 
-    override val payloadInfo: List<ListItem>
+    override val payloadInfo: List<ListItemInterface>
         get() = listOf(
             ListItem(
                 Localizer.localizeFormatted(R.string.ndef_android_pkg_value),
@@ -461,6 +461,6 @@ data class NdefInvalidType(
     override val name: StringResource
         get() = R.string.ndef_invalid_record
 
-    override val payloadInfo: List<ListItem>
+    override val payloadInfo: List<ListItemInterface>
         get() = listOf(ListItem("TNF", "$tnf")) + super.payloadInfo
 }

@@ -13,7 +13,7 @@ import au.id.micolous.metrodroid.multi.R
 import au.id.micolous.metrodroid.transit.CardInfo
 import au.id.micolous.metrodroid.transit.TransitData
 import au.id.micolous.metrodroid.transit.TransitRegion
-import au.id.micolous.metrodroid.ui.ListItem
+import au.id.micolous.metrodroid.ui.ListItemInterface
 import au.id.micolous.metrodroid.util.ImmutableByteArray
 import au.id.micolous.metrodroid.util.sum
 
@@ -25,7 +25,7 @@ data class NdefData(val entries: List<NdefEntry>) : TransitData() {
     override val cardName: String
         get() = NAME
 
-    override val info: List<ListItem>?
+    override val info: List<ListItemInterface>?
         get() = entries.flatMap { it.info }
 
     fun getEntryExtType(type: ImmutableByteArray): NdefExtType? =

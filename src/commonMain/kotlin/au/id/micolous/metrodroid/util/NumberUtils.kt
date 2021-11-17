@@ -70,6 +70,10 @@ object NumberUtils {
             return value
         return CharArray(minDigits - value.length) { '0' }.concatToString() + value
     }
+    fun zeroPad(value: Int, minDigits: Int): String =
+        zeroPad(value.toString(), minDigits)
+    fun zeroPad(value: Long, minDigits: Int): String =
+        zeroPad(value.toString(), minDigits)
 
     fun zeroPad(value: Int, minDigits: Int): String =
         zeroPad(value.toString(), minDigits)

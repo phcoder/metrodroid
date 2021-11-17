@@ -30,8 +30,10 @@ import au.id.micolous.metrodroid.serializers.XmlOrJsonCardFormat
 import au.id.micolous.metrodroid.transit.CardInfoRegistry
 import au.id.micolous.metrodroid.transit.TransitBalance
 import au.id.micolous.metrodroid.transit.TransitData
+import au.id.micolous.metrodroid.transit.ndef.MifareClassicAccessDirectory
 import au.id.micolous.metrodroid.util.ImmutableByteArray
 import au.id.micolous.metrodroid.util.StationTableReader
+import au.id.micolous.metrodroid.util.hexString
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.arguments.argument
@@ -47,6 +49,7 @@ class Cli: CliktCommand() {
             MakeJson(),
             SmartCard(),
             Notices(),
+            Mad()
         )
     }
 
@@ -68,6 +71,35 @@ class Identify: CliktCommand(
             }
             println("   name = ${ti?.name}")
             println("   serial = ${ti?.serialNumber}")
+        }
+    }
+}
+
+class Mad: CliktCommand(
+    help="Identifies the card(s) in a Metrodroid JSON file") {
+    private val fname by argument()
+
+    override fun run() {
+        for (card in loadCards(fname) ?: return) {
+            println("card UID = ${card.tagId}")
+            if (card.mifareClassic == null) {
+                println("   is not MFC")
+                continue
+            }
+            val mad = try {
+                MifareClassicAccessDirectory.parse(card.mifareClassic)
+            } catch (e: Exception) {
+                println("   exception = $e")
+                null
+            }
+            if (mad == null) {
+                println("   MAD is invalid")
+                continue
+            }
+            println("   MAD is valid")
+            for (aid in mad.aids) {
+                println("   Sector ${aid.sector}: ${aid.aid.hexString}")
+            }
         }
     }
 }

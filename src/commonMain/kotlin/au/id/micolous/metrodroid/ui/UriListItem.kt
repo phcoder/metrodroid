@@ -21,12 +21,25 @@ package au.id.micolous.metrodroid.ui
 
 import au.id.micolous.metrodroid.multi.FormattedString
 import au.id.micolous.metrodroid.multi.Localizer
+import au.id.micolous.metrodroid.multi.Parcelize
 import au.id.micolous.metrodroid.multi.StringResource
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * ListItem which supports directing to a website.
  */
-class UriListItem(nameResource: StringResource, value: FormattedString, val uri: String) :
-    ListItem(nameResource, value) {
-	constructor(nameResource: StringResource, valueResource: StringResource, uri: String) : this(nameResource, Localizer.localizeFormatted(valueResource), uri)
-    }
+@Parcelize
+@Serializable
+@SerialName("uri")
+data class UriListItem(
+    override val text1: FormattedString,
+    override val text2: FormattedString, val uri: String)
+    : ListItemInterface() {
+    constructor(nameResource: StringResource, valueResource: StringResource, uri: String) :
+            this(Localizer.localizeFormatted(nameResource),
+		 Localizer.localizeFormatted(valueResource), uri)
+    constructor(nameResource: StringResource, value: FormattedString, uri: String) :
+            this(Localizer.localizeFormatted(nameResource),
+            value, uri)
+}

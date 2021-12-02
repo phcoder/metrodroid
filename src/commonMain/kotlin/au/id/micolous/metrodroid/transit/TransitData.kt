@@ -24,7 +24,8 @@ import au.id.micolous.metrodroid.multi.*
 import au.id.micolous.metrodroid.time.Daystamp
 import au.id.micolous.metrodroid.time.Timestamp
 import au.id.micolous.metrodroid.ui.HeaderListItem
-import au.id.micolous.metrodroid.ui.ListItem
+import au.id.micolous.metrodroid.ui.ListItemInterface
+import au.id.micolous.metrodroid.util.ObfuscatedTrip
 import au.id.micolous.metrodroid.util.Preferences
 import au.id.micolous.metrodroid.util.TripObfuscator
 
@@ -110,7 +111,7 @@ abstract class TransitData : Parcelable {
      *   [TransitCurrency.maybeObfuscateBalance].
      *
      */
-    open val info: List<ListItem>?
+    open val info: List<ListItemInterface>?
         get() = null
 
     abstract val cardName: String
@@ -181,10 +182,34 @@ abstract class TransitData : Parcelable {
      *
      * This will obfuscate trip details if the user has enabled one of the trip obfuscation [Preferences].
      *
-     * @param safe When `false` (default), the exact [trips] will be returned verbatim if no obfuscation [Preferences]
+     * The exact [trips] will be returned verbatim if no obfuscation [Preferences]
      * have been enabled.
      *
-     * When `true`, [trips] is passed through [TripObfuscator] regardless of whether the user has enabled one
+     * This is required for Swift interop, as properties can't throw exceptions in Swift.
+     *
+     * @return A list of trips for display purposes. If [trips] is null, this also returns null.
+     *
+     * @see [trips], [TripObfuscator.obfuscateTrips]
+     */
+    @Throws(Throwable::class)
+    fun prepareTrips(): List<Trip>?  = logAndSwiftWrap ("TransitData", "prepareTrips failed") lam@{
+        val trips = this.trips ?: return@lam null
+
+        if (Preferences.obfuscateTripDates ||
+            Preferences.obfuscateTripTimes ||
+            Preferences.obfuscateTripFares) {
+                prepareTripsSafeReal(trips)
+        } else {
+            trips
+        }
+    }
+
+    /**
+     * Prepares a list of trips for display in the UI.
+     *
+     * This will obfuscate trip details if the user has enabled one of the trip obfuscation [Preferences].
+     *
+     * [trips] is passed through [TripObfuscator] regardless of whether the user has enabled one
      * of the trip obfuscation [Preferences]. If no obfuscation flags are enabled, [TripObfuscator] will simply copy
      * all fields verbatim.
      *
@@ -195,23 +220,10 @@ abstract class TransitData : Parcelable {
      * @see [trips], [TripObfuscator.obfuscateTrips]
      */
     @Throws(Throwable::class)
-    fun prepareTrips(safe: Boolean = false): List<Trip>?  = logAndSwiftWrap ("TransitData", "prepareTrips failed") lam@{
-        val trips = this.trips ?: return@lam null
-
-        val maybeObfuscatedTrips = if (safe ||
-                Preferences.obfuscateTripDates ||
-                Preferences.obfuscateTripTimes ||
-                Preferences.obfuscateTripFares) {
-            TripObfuscator.obfuscateTrips(trips,
-                    Preferences.obfuscateTripDates,
-                    Preferences.obfuscateTripTimes,
-                    Preferences.obfuscateTripFares)
-        } else {
-            trips
+    fun prepareTripsSafe(): List<ObfuscatedTrip>? = logAndSwiftWrap ("TransitData", "prepareTrips failed") lam@{
+        this.trips?.let {
+            prepareTripsSafeReal(it)
         }
-
-        // Explicitly sort these events
-        return@lam maybeObfuscatedTrips.sortedWith(Trip.Comparator())
     }
 
     /**
@@ -225,10 +237,10 @@ abstract class TransitData : Parcelable {
      * @param level Level of detail requested.
      * @see [info]
      */
-    open fun getRawFields(level: RawLevel): List<ListItem>? = null
+    open fun getRawFields(level: RawLevel): List<ListItemInterface>? = null
 
     companion object {
-        fun mergeInfo(transitData: TransitData): List<ListItem>? {
+        fun mergeInfo(transitData: TransitData): List<ListItemInterface>? {
             val rawLevel = Preferences.rawLevel
             val inf = transitData.info
             if (rawLevel == RawLevel.NONE)
@@ -244,6 +256,17 @@ abstract class TransitData : Parcelable {
             if (rawLevel == RawLevel.NONE)
                 return false
             return transitData.getRawFields(rawLevel) != null
+        }
+
+        @Throws(Throwable::class)
+        fun prepareTripsSafeReal(trips: List<Trip>): List<ObfuscatedTrip>?  = logAndSwiftWrap ("TransitData", "prepareTrips failed") lam@{
+            val maybeObfuscatedTrips = TripObfuscator.obfuscateTrips(trips,
+                        Preferences.obfuscateTripDates,
+                        Preferences.obfuscateTripTimes,
+                        Preferences.obfuscateTripFares)
+
+            // Explicitly sort these events
+            return@lam maybeObfuscatedTrips.sortedWith(Trip.Comparator())
         }
     }
 }

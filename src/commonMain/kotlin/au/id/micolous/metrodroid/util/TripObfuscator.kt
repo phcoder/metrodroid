@@ -99,7 +99,7 @@ object TripObfuscator {
     fun maybeObfuscateTS(input: Daystamp): Daystamp =
             maybeObfuscateTSDay(input, Preferences.obfuscateTripDates)
 
-    private fun obfuscateTrip(trip: Trip, obfuscateDates: Boolean, obfuscateTimes: Boolean, obfuscateFares: Boolean): Trip {
+    private fun obfuscateTrip(trip: Trip, obfuscateDates: Boolean, obfuscateTimes: Boolean, obfuscateFares: Boolean): ObfuscatedTrip {
         val start = trip.startTimestamp
         val timeDelta: Long = when (start) {
             null -> 0
@@ -110,6 +110,6 @@ object TripObfuscator {
         return ObfuscatedTrip(trip, timeDelta, obfuscateFares)
     }
 
-    fun obfuscateTrips(trips: List<Trip>, obfuscateDates: Boolean, obfuscateTimes: Boolean, obfuscateFares: Boolean): List<Trip> =
+    fun obfuscateTrips(trips: List<Trip>, obfuscateDates: Boolean, obfuscateTimes: Boolean, obfuscateFares: Boolean): List<ObfuscatedTrip> =
             trips.map { obfuscateTrip(it, obfuscateDates, obfuscateTimes, obfuscateFares) }
 }

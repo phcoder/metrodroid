@@ -23,6 +23,7 @@
 package au.id.micolous.metrodroid.time
 
 import au.id.micolous.metrodroid.multi.FormattedString
+import au.id.micolous.metrodroid.multi.IgnoredOnParcel
 import au.id.micolous.metrodroid.multi.Parcelable
 import au.id.micolous.metrodroid.multi.Parcelize
 import au.id.micolous.metrodroid.util.NumberUtils
@@ -44,6 +45,8 @@ data class MetroTimeZone(val olson: String): Parcelable {
         LOCAL -> TimeZone.currentSystemDefault()
         else -> TimeZone.of(olson)
     }
+
+    val resolvedOlson get() = libTimeZone.id
 
     @OptIn(ExperimentalSerializationApi::class)
     @Serializer(forClass = MetroTimeZone::class)
@@ -217,6 +220,7 @@ class EpochLocal internal constructor(private val baseDays: Int,
         m = (s / 60) % 60, s = s % 60)
 }
 
+@Serializable
 sealed class Timestamp: Parcelable {
     val monthNumberOneBased: Int get() = month.number
     val monthNumberZeroBased: Int get() = month.number - 1
@@ -236,6 +240,7 @@ sealed class Timestamp: Parcelable {
 
 @Parcelize
 @Serializable
+@SerialName("daystamp")
 // Only date is known
 data class Daystamp internal constructor(val daysSinceEpoch: Int): Timestamp(), Comparable<Daystamp> {
     override fun toDaystamp(): Daystamp = this
@@ -248,6 +253,7 @@ data class Daystamp internal constructor(val daysSinceEpoch: Int): Timestamp(), 
                 TimestampFormatter.longDateFormat(this)
 
     val dayOfYear: Int get() = localDate.dayOfYear
+    @IgnoredOnParcel
     override val localDate by lazy {
         epochLocalDate + DatePeriod(0, 0, daysSinceEpoch)
     }
@@ -304,6 +310,7 @@ data class Daystamp internal constructor(val daysSinceEpoch: Int): Timestamp(), 
 
 @Parcelize
 @Serializable
+@SerialName("full")
 // Precision or minutes and higher
 data class TimestampFull(val timeInMillis: Long,
                                             val tz: MetroTimeZone): Parcelable, Comparable<TimestampFull>, Timestamp() {
@@ -311,12 +318,15 @@ data class TimestampFull(val timeInMillis: Long,
 
     val hour: Int get() = ldt.hour
     val minute: Int get() = ldt.minute
+    @IgnoredOnParcel
     val ldt by lazy {
         Instant.fromEpochMilliseconds(timeInMillis).toLocalDateTime(tz.libTimeZone)
     }
+    @IgnoredOnParcel
     val ldtUtc by lazy {
         Instant.fromEpochMilliseconds(timeInMillis).toLocalDateTime(MetroTimeZone.UTC.libTimeZone)
     }
+    @IgnoredOnParcel
     override val localDate by lazy {
         ldt.date
     }

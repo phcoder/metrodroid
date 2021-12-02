@@ -25,6 +25,7 @@ import au.id.micolous.metrodroid.multi.Log
 import au.id.micolous.metrodroid.multi.R
 import au.id.micolous.metrodroid.ui.HeaderListItem
 import au.id.micolous.metrodroid.ui.ListItem
+import au.id.micolous.metrodroid.ui.ListItemInterface
 import au.id.micolous.metrodroid.ui.ListItemRecursive
 import au.id.micolous.metrodroid.util.ImmutableByteArray
 import au.id.micolous.metrodroid.util.Preferences
@@ -215,7 +216,6 @@ object ISO7816TLV {
         }
     }
 
-    // TODO: Replace with Sequence
     /**
      * Iterates over Processing Options Data Object List (PDOL), tag 9f38.
      *
@@ -223,9 +223,9 @@ object ISO7816TLV {
      *
      * The lengths in this context are the expected length in the request.
      */
-    fun pdolIterate(buf: ImmutableByteArray,
-                    iterator: (id: ImmutableByteArray,
-                               len: Int) -> Unit) {
+    fun pdolIterate(buf: ImmutableByteArray):
+            Sequence<Pair<ImmutableByteArray, Int>> =
+                    sequence {
         var p = 0
 
         while (p < buf.size) {
@@ -233,7 +233,7 @@ object ISO7816TLV {
             if (idlen < 0) break
             val (lenlen, datalen, eoclen) = decodeTLVLen(buf, p + idlen) ?: break
             if (lenlen < 0 || datalen < 0 || eoclen != 0) break
-            iterator(buf.sliceOffLen(p, idlen), datalen)
+            yield(Pair(buf.sliceOffLen(p, idlen), datalen))
 
             p += idlen + lenlen
         }
@@ -278,7 +278,7 @@ object ISO7816TLV {
     /**
      * Parses BER-TLV data, and builds [ListItem] and [ListItemRecursive] for each of the tags.
      */
-    fun infoBerTLV(buf: ImmutableByteArray, multihead: Boolean = false): List<ListItem> {
+    fun infoBerTLV(buf: ImmutableByteArray, multihead: Boolean = false): List<ListItemInterface> {
         return berTlvIterate(buf, multihead).map { (id, header, data) ->
             if (id[0].toInt() and 0xe0 == 0xa0) {
                 try {
@@ -460,8 +460,8 @@ object ISO7816TLV {
         tagmap: Map<String, TagDesc>,
         hideThings: Boolean,
         multihead: Boolean = false
-    ): List<ListItem> {
-        val res = mutableListOf<ListItem>(
+    ): List<ListItemInterface> {
+        val res = mutableListOf<ListItemInterface>(
             HeaderListItem(R.string.tlv_tags))
         val unknownIds = mutableSetOf<String>()
         for (tlv in tlvs) {

@@ -48,6 +48,4 @@ actual abstract class BaseInstrumentedTestPlatform {
     actual fun loadAssetSafe(path: String) : Input? = loadAssetStream(path)?.let {
         JavaStreamInput(it)
     }
-
-    actual fun listAsset(path: String) : List <String>? = null
 }

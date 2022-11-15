@@ -45,6 +45,7 @@ class UnauthorizedDesfireTransitData (override val cardName: String): Unauthoriz
         )
 
         private val TYPES = listOf(
+                UnauthorizedType(0x50007d, "Rejsekort (Denmark)"),
                 UnauthorizedType(0x31594f, "Oyster"),
                 UnauthorizedType(0x425311, "Thailand BEM"),
                 UnauthorizedType(0x425303, "Rabbit Card"),

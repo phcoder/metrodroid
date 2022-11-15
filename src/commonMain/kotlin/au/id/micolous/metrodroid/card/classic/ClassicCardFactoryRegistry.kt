@@ -26,6 +26,7 @@ import au.id.micolous.metrodroid.transit.oyster.OysterTransitData
 import au.id.micolous.metrodroid.transit.pilet.KievDigitalTransitFactory
 import au.id.micolous.metrodroid.transit.pilet.TartuTransitFactory
 import au.id.micolous.metrodroid.transit.podorozhnik.PodorozhnikTransitData
+import au.id.micolous.metrodroid.transit.pulapromet.PulaPrometTransitData
 import au.id.micolous.metrodroid.transit.ricaricami.RicaricaMiTransitData
 import au.id.micolous.metrodroid.transit.rkf.RkfTransitData
 import au.id.micolous.metrodroid.transit.selecta.SelectaFranceTransitData
@@ -86,6 +87,7 @@ object ClassicCardFactoryRegistry {
             WarsawTransitData.FACTORY,
             CifialTransitFactory,
             YarGorTransitFactory,
+            PulaPrometTransitData.FACTORY,
 
             TartuTransitFactory, // Must be before NDEF as it's a special case of Ndef
             NdefClassicTransitFactory,

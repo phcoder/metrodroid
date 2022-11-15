@@ -83,6 +83,7 @@ sealed class TransitRegion {
         val CHILE = Iso("CL")
         val CHINA = Iso("CN")
         val CRIMEA = Crimea
+        val CROATIA = Iso("HR")
         val DENMARK = Iso("DK")
         val ESTONIA = Iso("EE")
         val FINLAND = Iso("FI")

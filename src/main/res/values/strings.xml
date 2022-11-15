@@ -2755,4 +2755,5 @@
     <!-- Translators: Smartrider fare class, time-limited ticket for those
     attending a special event. -->
     <string name="smartrider_fare_convention">Convention Pass</string>
+    <string name="location_pula">Pula, Croatia</string>
 </resources>
